@@ -17,10 +17,20 @@ jobs:
           channel: stable
           cache: true
       - name: Accept Android SDK licenses and install API 36
+        shell: bash
         run: |
-          yes | sdkmanager --licenses || true
-          sdkmanager --install "platforms;android-36" "build-tools;36.0.0"
-          sdkmanager --list_installed
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "Android SDK root: $SDK_ROOT"
+          SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager -print -quit 2>/dev/null)"
+          if [ -z "$SDKMANAGER" ]; then
+            echo "sdkmanager not found under $SDK_ROOT/cmdline-tools"
+            find "$SDK_ROOT" -maxdepth 4 -type f -name sdkmanager -print 2>/dev/null || true
+            exit 1
+          fi
+          echo "Using: $SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses || true
+          "$SDKMANAGER" --install "platforms;android-36" "build-tools;36.0.0"
+          "$SDKMANAGER" --list_installed
       # Generate only missing Android platform scaffolding.
       # Do NOT use --overwrite: it replaces lib/main.dart with Flutter's counter demo.
       - name: Generate Android platform files
