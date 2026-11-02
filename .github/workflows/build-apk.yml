@@ -49,29 +49,35 @@ jobs:
           PY
       - run: flutter pub get
       - name: Force Android plugin modules to compile with API 36
+        shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import os
-          roots = [
-              Path.home() / ".pub-cache" / "hosted" / "pub.dev",
-              Path(os.environ.get("PUB_CACHE", str(Path.home() / ".pub-cache"))) / "hosted" / "pub.dev",
-          ]
+          import os, re
+          root = Path(os.environ.get("PUB_CACHE", str(Path.home() / ".pub-cache"))) / "hosted" / "pub.dev"
+          print("Scanning Pub cache:", root)
           changed = []
-          for root in roots:
-              if not root.exists():
-                  continue
-              for p in root.glob("*/android/build.gradle*"):
+          if root.exists():
+              for p in root.rglob("build.gradle*"):
                   try:
                       s = p.read_text()
                   except (UnicodeDecodeError, OSError):
                       continue
-                  updated = s.replace("compileSdkVersion 34", "compileSdkVersion 36")
-                  updated = updated.replace("compileSdk = 34", "compileSdk = 36")
+                  updated = s
+                  # Cover Groovy/Kotlin DSL variants and Flutter's inherited SDK value.
+                  updated = re.sub(r"compileSdkVersion\\s*(?:=\\s*)?34\\b", "compileSdkVersion 36", updated)
+                  updated = re.sub(r"compileSdk\\s*(?:=\\s*)?34\\b", "compileSdk 36", updated)
+                  updated = updated.replace("flutter.compileSdkVersion", "36")
                   if updated != s:
                       p.write_text(updated)
                       changed.append(str(p))
-          print("Updated plugin Gradle files:", changed if changed else "none needed")
+          print("Plugin Gradle files updated:", changed)
+          file_picker = list(root.glob("file_picker-*/android/build.gradle*")) if root.exists() else []
+          for p in file_picker:
+              print("FILE_PICKER_GRADLE:", p)
+              print(p.read_text())
+          if not changed:
+              print("No plugin Gradle file matched; diagnostic above will show file_picker configuration.")
           PY
       - run: flutter analyze lib
       - run: flutter build apk --release
