@@ -48,6 +48,31 @@ jobs:
           print("Configured compileSdk 36")
           PY
       - run: flutter pub get
+      - name: Force Android plugin modules to compile with API 36
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          roots = [
+              Path.home() / ".pub-cache" / "hosted" / "pub.dev",
+              Path(os.environ.get("PUB_CACHE", str(Path.home() / ".pub-cache"))) / "hosted" / "pub.dev",
+          ]
+          changed = []
+          for root in roots:
+              if not root.exists():
+                  continue
+              for p in root.glob("*/android/build.gradle*"):
+                  try:
+                      s = p.read_text()
+                  except (UnicodeDecodeError, OSError):
+                      continue
+                  updated = s.replace("compileSdkVersion 34", "compileSdkVersion 36")
+                  updated = updated.replace("compileSdk = 34", "compileSdk = 36")
+                  if updated != s:
+                      p.write_text(updated)
+                      changed.append(str(p))
+          print("Updated plugin Gradle files:", changed if changed else "none needed")
+          PY
       - run: flutter analyze lib
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
