@@ -10,7 +10,34 @@ import 'dart:io';
 void main()=>runApp(const SangroyaApp());
 class SangroyaApp extends StatelessWidget {
  const SangroyaApp({super.key});
- @override Widget build(BuildContext context)=>MaterialApp(title:'SANGROYA FAMILY TREE',debugShowCheckedModeBanner:false,theme:ThemeData(colorScheme:ColorScheme.fromSeed(seedColor:const Color(0xFF315C4B)),useMaterial3:true),home:const FamilyHome());
+ @override Widget build(BuildContext context)=>MaterialApp(title:'SANGROYA FAMILY TREE',debugShowCheckedModeBanner:false,theme:ThemeData(
+  useMaterial3:true,
+  colorScheme:const ColorScheme(
+    brightness:Brightness.light,
+    primary:Color(0xFF176B3A),
+    onPrimary:Colors.white,
+    secondary:Color(0xFFFF8A00),
+    onSecondary:Colors.white,
+    error:Color(0xFFB3261E),
+    onError:Colors.white,
+    surface:Color(0xFFFFF8ED),
+    onSurface:Color(0xFF183322),
+  ),
+  scaffoldBackgroundColor:const Color(0xFFF1F8F1),
+  appBarTheme:const AppBarTheme(
+    backgroundColor:Color(0xFF176B3A),
+    foregroundColor:Colors.white,
+    iconTheme:IconThemeData(color:Colors.white),
+    titleTextStyle:TextStyle(color:Colors.white,fontSize:20,fontWeight:FontWeight.bold),
+  ),
+  floatingActionButtonTheme:const FloatingActionButtonThemeData(
+    backgroundColor:Color(0xFFFF8A00),foregroundColor:Colors.white,
+  ),
+  filledButtonTheme:FilledButtonThemeData(style:FilledButton.styleFrom(
+    backgroundColor:const Color(0xFFFF8A00),foregroundColor:Colors.white,
+  )),
+  cardTheme:const CardThemeData(color:Color(0xFFFFFDF7),elevation:2),
+),home:const FamilyHome());
 }
 class Member {
  final String name,gender,father,mother,village,occupation,spouse,spouseCity,generation,dob,dod,marriageDate,visitedPlaces,jobType,jobCountry,jobDetails,notes;
@@ -37,9 +64,9 @@ class _FamilyHomeState extends State<FamilyHome>{
  @override Widget build(BuildContext context)=>Scaffold(
  drawer:Drawer(child:ListView(padding:EdgeInsets.zero,children:[DrawerHeader(decoration:const BoxDecoration(gradient:LinearGradient(colors:[Color(0xFF0B4A22),Color(0xFF27A36B)])),child:const Column(crossAxisAlignment:CrossAxisAlignment.start,mainAxisAlignment:MainAxisAlignment.end,children:[Icon(Icons.account_tree,color:Colors.white,size:38),Text('SANGROYA FAMILY TREE',style:TextStyle(color:Colors.white,fontWeight:FontWeight.bold,fontSize:18)),Text('परिवार की डिजिटल वंशावली',style:TextStyle(color:Colors.white))])),ListTile(leading:const Icon(Icons.upload_file),title:const Text('Upload PDF / JPEG'),onTap:(){Navigator.pop(context);uploadDocument();}),ListTile(leading:const Icon(Icons.download),title:const Text('Download / Backup'),onTap:(){Navigator.pop(context);exportBackup();}),ListTile(leading:const Icon(Icons.person_add),title:const Text('Add Family Member'),onTap:(){Navigator.pop(context);edit();}),ListTile(leading:const Icon(Icons.account_tree),title:const Text('Family Tree'),onTap:(){Navigator.pop(context);tree();}),ListTile(leading:const Icon(Icons.folder),title:const Text('Documents / Gallery'),onTap:showDocuments),const Divider(),ListTile(leading:const Icon(Icons.login),title:const Text('Family Login'),onTap:()=>showAccess(false)),ListTile(leading:const Icon(Icons.app_registration),title:const Text('Registration Request'),onTap:()=>showAccess(true)),const ListTile(leading:Icon(Icons.admin_panel_settings),title:Text('Admin Panel — अगला चरण'),subtitle:Text('केवल Super Admin के लिए'))])),
  appBar:AppBar(title:const Text('SANGROYA FAMILY TREE'),actions:[IconButton(onPressed:showDocuments,icon:const Icon(Icons.folder_open))]),
- body:Container(decoration:const BoxDecoration(gradient:LinearGradient(begin:Alignment.topLeft,end:Alignment.bottomRight,colors:[Color(0xFFEAF7EF),Color(0xFFF4F0FF),Color(0xFFFFF5E8)])),child:ListView(padding:const EdgeInsets.all(14),children:[
+ body:Container(decoration:const BoxDecoration(gradient:LinearGradient(begin:Alignment.topLeft,end:Alignment.bottomRight,colors:[Color(0xFFEAF7EF),Color(0xFFFFF1DC),Color(0xFFF4FAF2)])),child:ListView(padding:const EdgeInsets.all(14),children:[
  Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFF0B4A22),Color(0xFF2C8B61)]),borderRadius:BorderRadius.circular(20)),child:const Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('हमारी विरासत, हमारी पहचान',style:TextStyle(color:Colors.white,fontSize:22,fontWeight:FontWeight.bold)),Text('18 पीढ़ियों का डिजिटल परिवार वृक्ष',style:TextStyle(color:Colors.white70))])),
- const SizedBox(height:12),GridView.count(crossAxisCount:2,shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),crossAxisSpacing:10,mainAxisSpacing:10,childAspectRatio:1.55,children:[_dash(Icons.account_tree,'Family Tree','वंशावली देखें',const Color(0xFF236B52),tree),_dash(Icons.person_add_alt_1,'Add Member','नया सदस्य जोड़ें',const Color(0xFF3569B7),()=>edit()),_dash(Icons.upload_file,'Upload Files','PDF / JPEG / PNG',const Color(0xFF9B5A20),uploadDocument),_dash(Icons.download,'Download','Backup / Export',const Color(0xFF7651A5),exportBackup)]),
+ const SizedBox(height:12),GridView.count(crossAxisCount:2,shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),crossAxisSpacing:10,mainAxisSpacing:10,childAspectRatio:1.55,children:[_dash(Icons.account_tree,'Family Tree','वंशावली देखें',const Color(0xFF236B52),tree),_dash(Icons.person_add_alt_1,'Add Member','नया सदस्य जोड़ें',const Color(0xFFFF8A00),()=>edit()),_dash(Icons.upload_file,'Upload Files','PDF / JPEG / PNG',const Color(0xFF2C8B57),uploadDocument),_dash(Icons.download,'Download','Backup / Export',const Color(0xFFFF9A1F),exportBackup)]),
  Card(child:ListTile(title:const Text('कुल परिवार सदस्य'),trailing:Text('${members.length}',style:const TextStyle(fontSize:24,fontWeight:FontWeight.bold)))),Card(child:ListTile(title:const Text('अपलोड दस्तावेज़'),trailing:Text('${documents.length}',style:const TextStyle(fontSize:24,fontWeight:FontWeight.bold)),onTap:showDocuments)),Text(status),const Text('सदस्य सूची',style:TextStyle(fontWeight:FontWeight.bold,fontSize:18)),...members.asMap().entries.map((e)=>Card(child:ListTile(title:Text(e.value.name),subtitle:Text([e.value.gender,e.value.village,e.value.father].where((x)=>x.isNotEmpty).join(' • ')),onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>ProfilePage(member:e.value,all:members))),trailing:IconButton(icon:const Icon(Icons.edit),onPressed:()=>edit(e.key))))),const SizedBox(height:70)])),
  floatingActionButton:FloatingActionButton.extended(onPressed:()=>edit(),icon:const Icon(Icons.person_add),label:const Text('Member जोड़ें')));
  Widget _dash(IconData icon,String title,String sub,Color color,VoidCallback action)=>InkWell(onTap:action,borderRadius:BorderRadius.circular(16),child:Container(padding:const EdgeInsets.all(13),decoration:BoxDecoration(color:color,borderRadius:BorderRadius.circular(16)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,mainAxisAlignment:MainAxisAlignment.center,children:[Icon(icon,color:Colors.white,size:28),const SizedBox(height:6),Text(title,style:const TextStyle(color:Colors.white,fontWeight:FontWeight.bold,fontSize:16)),Text(sub,style:const TextStyle(color:Colors.white70,fontSize:12))])));
