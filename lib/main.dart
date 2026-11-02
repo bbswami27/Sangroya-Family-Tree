@@ -63,5 +63,80 @@ class ProfilePage extends StatelessWidget{
 class FamilyTreePage extends StatelessWidget{final List<Member> members;const FamilyTreePage({super.key,required this.members});@override Widget build(BuildContext context){final counts=<String,int>{};for(final m in members){final k=m.name.toLowerCase().trim();counts[k]=(counts[k]??0)+1;}final map=<String,List<Member>>{};for(final m in members){final k=m.father.toLowerCase().trim();if(k.isNotEmpty&&counts[k]==1)map.putIfAbsent(k,()=>[]).add(m);}final roots=members.where((m){final k=m.father.toLowerCase().trim();return k.isEmpty||counts[k]!=1;}).toList();return Scaffold(appBar:AppBar(title:const Text('Family Tree — 18 पीढ़ियाँ')),body:ListView(padding:const EdgeInsets.all(12),children:[const Text('किसी भी सदस्य पर क्लिक करके पिता, दादा, बच्चों और पोते-पोतियों का विवरण देखें।'),...roots.map((m)=>TreeNode(m:m,map:map,all:members,path:<String>{},depth:1))]));}}
 class TreeNode extends StatelessWidget{final Member m;final Map<String,List<Member>> map;final List<Member> all;final Set<String> path;final int depth;const TreeNode({super.key,required this.m,required this.map,required this.all,required this.path,required this.depth});@override Widget build(BuildContext context){final k=m.name.toLowerCase().trim();final p={...path,k};final kids=(map[k]??[]).where((x)=>!p.contains(x.name.toLowerCase().trim())).toList();final tile=ListTile(title:Text(m.name),subtitle:Text([m.gender,m.village,m.spouse].where((x)=>x.isNotEmpty).join(' • ')),onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>ProfilePage(member:m,all:all))));return Card(margin:EdgeInsets.only(left:(depth-1)*10),child:kids.isEmpty?tile:ExpansionTile(title:Text(m.name),subtitle:tile.subtitle,children:kids.map((x)=>TreeNode(m:x,map:map,all:all,path:p,depth:depth+1)).toList()));}}
 
-class AccessPage extends StatelessWidget { final bool registration; const AccessPage({super.key,required this.registration}); @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:Text(registration?'Family Registration':'Family Login')),body:Center(child:SingleChildScrollView(padding:const EdgeInsets.all(22),child:Card(child:Padding(padding:const EdgeInsets.all(18),child:Column(mainAxisSize:MainAxisSize.min,children:[Icon(registration?Icons.app_registration:Icons.lock_outline,size:48,color:const Color(0xFF236B52)),const SizedBox(height:12),Text(registration?'परिवार सदस्यता अनुरोध':'परिवार लॉगिन',style:const TextStyle(fontSize:21,fontWeight:FontWeight.bold)),const SizedBox(height:12),if(registration)const TextField(decoration:InputDecoration(labelText:'पूरा नाम',border:OutlineInputBorder())),const TextField(decoration:InputDecoration(labelText:'मोबाइल नंबर / ईमेल',border:OutlineInputBorder())),const SizedBox(height:10),const TextField(obscureText:true,decoration:InputDecoration(labelText:'पासवर्ड',border:OutlineInputBorder())),const SizedBox(height:14),FilledButton(onPressed:(){ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('यह केवल UI प्रोटोटाइप है। सुरक्षित लॉगिन, रजिस्ट्रेशन और Admin approval Firebase जोड़ने के बाद सक्रिय होंगे।')));},child:Text(registration?'Request Registration':'Login')),const SizedBox(height:8),const Text('अभी यह केवल डिजाइन है। वास्तविक अकाउंट, पासवर्ड सत्यापन, Super Admin approval और multi-phone sync सक्रिय नहीं हैं।',style:TextStyle(color:Colors.deepOrange),textAlign:TextAlign.center)]))))));}
+class AccessPage extends StatelessWidget {
+  final bool registration;
+  const AccessPage({super.key, required this.registration});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(registration ? 'Family Registration' : 'Family Login')),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(22),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    registration ? Icons.app_registration : Icons.lock_outline,
+                    size: 48,
+                    color: const Color(0xFF236B52),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    registration ? 'परिवार सदस्यता अनुरोध' : 'परिवार लॉगिन',
+                    style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  if (registration)
+                    const TextField(
+                      decoration: InputDecoration(
+                        labelText: 'पूरा नाम',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  const TextField(
+                    decoration: InputDecoration(
+                      labelText: 'मोबाइल नंबर / ईमेल',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const TextField(
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'पासवर्ड',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  FilledButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'यह केवल UI प्रोटोटाइप है। सुरक्षित लॉगिन, रजिस्ट्रेशन और Admin approval Firebase जोड़ने के बाद सक्रिय होंगे।',
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text(registration ? 'Request Registration' : 'Login'),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'अभी यह केवल डिजाइन है। वास्तविक अकाउंट, पासवर्ड सत्यापन, Super Admin approval और multi-phone sync सक्रिय नहीं हैं।',
+                    style: TextStyle(color: Colors.deepOrange),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
