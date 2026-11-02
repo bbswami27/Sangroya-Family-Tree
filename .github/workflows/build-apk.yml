@@ -10,14 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
       - name: Install Android API 36
         run: |
-          yes | sdkmanager --licenses
-          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+          sdkmanager --install "platforms;android-36" "build-tools;36.0.0"
+          sdkmanager --list_installed
       # Generate only missing Android platform scaffolding.
       # Do NOT use --overwrite: it replaces lib/main.dart with Flutter's counter demo.
       - name: Generate Android platform files
