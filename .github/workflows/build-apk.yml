@@ -10,14 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      # GitHub's Ubuntu runner already includes Android SDK. Avoid setup-android
+      # here because its sdkmanager bootstrap is failing before our build starts.
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-      - name: Install Android API 36
+      - name: Accept Android SDK licenses and install API 36
         run: |
+          yes | sdkmanager --licenses || true
           sdkmanager --install "platforms;android-36" "build-tools;36.0.0"
           sdkmanager --list_installed
       # Generate only missing Android platform scaffolding.
