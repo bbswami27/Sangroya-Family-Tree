@@ -14,8 +14,10 @@ jobs:
         with:
           channel: stable
           cache: true
+      # Generate only missing Android platform scaffolding.
+      # Do NOT use --overwrite: it replaces lib/main.dart with Flutter's counter demo.
       - name: Generate Android platform files
-        run: flutter create --project-name sangroya_family_tree --platforms android --org com.sangroya.familytree --overwrite .
+        run: flutter create --project-name sangroya_family_tree --platforms android --org com.sangroya.familytree .
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter build apk --release
