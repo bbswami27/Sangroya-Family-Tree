@@ -14,10 +14,26 @@ jobs:
         with:
           channel: stable
           cache: true
+      - name: Install Android API 36
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
       # Generate only missing Android platform scaffolding.
       # Do NOT use --overwrite: it replaces lib/main.dart with Flutter's counter demo.
       - name: Generate Android platform files
         run: flutter create --project-name sangroya_family_tree --platforms android --org com.sangroya.familytree .
+      - name: Set Android compile SDK to 36
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("android/app/build.gradle.kts")
+          s = p.read_text()
+          s2 = s.replace("compileSdk = flutter.compileSdkVersion", "compileSdk = 36")
+          if s2 == s and "compileSdk = 36" not in s:
+              raise SystemExit("Could not locate compileSdk setting in " + str(p))
+          p.write_text(s2)
+          print("Configured compileSdk 36")
+          PY
       - run: flutter pub get
       - run: flutter analyze lib
       - run: flutter build apk --release
