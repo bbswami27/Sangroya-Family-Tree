@@ -8,10 +8,13 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
-      # GitHub's Ubuntu runner already includes Android SDK. Avoid setup-android
-      # here because its sdkmanager bootstrap is failing before our build starts.
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -20,34 +23,73 @@ jobs:
         shell: bash
         run: |
           SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
-          echo "Android SDK root: $SDK_ROOT"
           SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager -print -quit 2>/dev/null)"
           if [ -z "$SDKMANAGER" ]; then
             echo "sdkmanager not found under $SDK_ROOT/cmdline-tools"
-            find "$SDK_ROOT" -maxdepth 4 -type f -name sdkmanager -print 2>/dev/null || true
             exit 1
           fi
-          echo "Using: $SDKMANAGER"
           yes | "$SDKMANAGER" --licenses || true
           "$SDKMANAGER" --install "platforms;android-36" "build-tools;36.0.0"
-          "$SDKMANAGER" --list_installed
-      # Generate only missing Android platform scaffolding.
-      # Do NOT use --overwrite: it replaces lib/main.dart with Flutter's counter demo.
       - name: Generate Android platform files
         run: flutter create --project-name sangroya_family_tree --platforms android --org com.sangroya.familytree .
-      - name: Set Android compile SDK to 36
+      - name: Prepare signing key
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!name:-}" ]; then echo "Missing GitHub Actions secret: $name"; exit 1; fi
+          done
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/sangroya-upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storePassword=$KEYSTORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=sangroya-upload-keystore.jks
+          EOF
+      - name: Configure Android release signing and compile SDK
+        shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p = Path("android/app/build.gradle.kts")
           s = p.read_text()
-          s2 = s.replace("compileSdk = flutter.compileSdkVersion", "compileSdk = 36")
-          if s2 == s and "compileSdk = 36" not in s:
-              raise SystemExit("Could not locate compileSdk setting in " + str(p))
-          p.write_text(s2)
-          print("Configured compileSdk 36")
+          s = s.replace("compileSdk = flutter.compileSdkVersion", "compileSdk = 36")
+          imports = "import java.util.Properties\nimport java.io.FileInputStream\n"
+          if "import java.util.Properties" not in s:
+              s = imports + s
+          load = '''
+          val keystoreProperties = Properties()
+          val keystorePropertiesFile = rootProject.file("key.properties")
+          if (keystorePropertiesFile.exists()) {
+              keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+          }
+
+          '''
+          if "val keystoreProperties = Properties()" not in s:
+              s = s.replace("android {", load + "android {", 1)
+          signing = '''
+              signingConfigs {
+                  create("release") {
+                      keyAlias = keystoreProperties["keyAlias"] as String
+                      keyPassword = keystoreProperties["keyPassword"] as String
+                      storeFile = file(keystoreProperties["storeFile"] as String)
+                      storePassword = keystoreProperties["storePassword"] as String
+                  }
+              }
+          '''
+          if 'create("release")' not in s:
+              s = s.replace("    defaultConfig {", signing + "\n    defaultConfig {", 1)
+          s = s.replace('signingConfig = signingConfigs.getByName("debug")', 'signingConfig = signingConfigs.getByName("release")')
+          if 'signingConfig = signingConfigs.getByName("release")' not in s:
+              s = s.replace("        release {", '        release {\n            signingConfig = signingConfigs.getByName("release")', 1)
+          if "compileSdk = 36" not in s or 'signingConfig = signingConfigs.getByName("release")' not in s:
+              raise SystemExit("Android release signing/compileSdk configuration failed")
+          p.write_text(s)
+          print("Configured release signing and compileSdk 36")
           PY
       - run: flutter pub get
+      - name: Generate launcher icons
+        run: dart run flutter_launcher_icons
       - name: Force Android plugin modules to compile with API 36
         shell: bash
         run: |
@@ -55,24 +97,14 @@ jobs:
           from pathlib import Path
           import os
           root = Path(os.environ.get("PUB_CACHE", str(Path.home() / ".pub-cache"))) / "hosted" / "pub.dev"
-          targets = [
-              root / "file_picker-8.3.7" / "android" / "build.gradle",
-          ]
-          for p in targets:
-              if not p.exists():
-                  raise SystemExit(f"Required plugin Gradle file not found: {p}")
-              s = p.read_text()
-              updated = s.replace("compileSdk 34", "compileSdk 36")
-              updated = updated.replace("compileSdkVersion 34", "compileSdkVersion 36")
-              updated = updated.replace("flutter.compileSdkVersion", "36")
-              if "compileSdk 34" in updated or "compileSdkVersion 34" in updated:
-                  raise SystemExit(f"API 34 compileSdk remains in {p}")
-              if updated == s:
-                  print("file_picker compileSdk was already updated")
-              else:
-                  p.write_text(updated)
-                  print("Updated file_picker Gradle:", p)
-              print("\n".join(line for line in p.read_text().splitlines() if "compileSdk" in line))
+          p = root / "file_picker-8.3.7" / "android" / "build.gradle"
+          if not p.exists():
+              raise SystemExit(f"Required plugin Gradle file not found: {p}")
+          s = p.read_text()
+          updated = s.replace("compileSdk 34", "compileSdk 36").replace("compileSdkVersion 34", "compileSdkVersion 36").replace("flutter.compileSdkVersion", "36")
+          if "compileSdk 34" in updated or "compileSdkVersion 34" in updated:
+              raise SystemExit(f"API 34 compileSdk remains in {p}")
+          p.write_text(updated)
           PY
       - run: flutter analyze lib
       - run: flutter build apk --release
