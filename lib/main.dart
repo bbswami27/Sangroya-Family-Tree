@@ -245,6 +245,14 @@ class _FamilyHomeState extends State<FamilyHome> {
     }
   }
 
+  void openFamilyTree() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => FamilyTreePage(members: List<Member>.from(members)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -272,6 +280,15 @@ class _FamilyHomeState extends State<FamilyHome> {
                     '18 पीढ़ियों का Family Tree • Member Profiles • Village Records',
                   ),
                   const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: openFamilyTree,
+                      icon: const Icon(Icons.account_tree),
+                      label: const Text('पूरा Family Tree देखें'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
                       Expanded(
@@ -367,6 +384,140 @@ class _FamilyHomeState extends State<FamilyHome> {
           ),
         ],
       ),
+    );
+  }
+}
+
+
+class FamilyTreePage extends StatelessWidget {
+  final List<Member> members;
+
+  const FamilyTreePage({super.key, required this.members});
+
+  @override
+  Widget build(BuildContext context) {
+    final nameCounts = <String, int>{};
+    for (final member in members) {
+      final key = member.name.trim().toLowerCase();
+      nameCounts[key] = (nameCounts[key] ?? 0) + 1;
+    }
+
+    final childrenByFather = <String, List<Member>>{};
+    for (final member in members) {
+      final fatherKey = member.father.trim().toLowerCase();
+      if (fatherKey.isEmpty || nameCounts[fatherKey] != 1) continue;
+      childrenByFather.putIfAbsent(fatherKey, () => <Member>[]).add(member);
+    }
+
+    final roots = members.where((member) {
+      final fatherKey = member.father.trim().toLowerCase();
+      return fatherKey.isEmpty || nameCounts[fatherKey] != 1;
+    }).toList();
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('18 पीढ़ियों का Family Tree')),
+      body: members.isEmpty
+          ? const Center(
+              child: Text('पहले Family Members जोड़ें या Excel Upload करें।'),
+            )
+          : ListView(
+              padding: const EdgeInsets.all(12),
+              children: [
+                Card(
+                  color: Theme.of(context).colorScheme.secondaryContainer,
+                  child: const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: Text(
+                      'यह Tree “पिता का नाम” के आधार पर बनता है। '
+                      'जिस पिता का नाम सूची में एक ही सदस्य से मिलता है, '
+                      'उसके बच्चे उसी शाखा में दिखेंगे। अधूरी या अस्पष्ट '
+                      'जानकारी को अलग रखा गया है—रिश्ते अपने-आप नहीं माने गए हैं।',
+                    ),
+                  ),
+                ),
+                Text(
+                  'कुल सदस्य: ${members.length}  •  मुख्य शाखाएँ: ${roots.length}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                if (roots.isEmpty)
+                  const Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(12),
+                      child: Text(
+                        'कोई शुरुआती सदस्य नहीं मिला। पिता के नाम की जाँच करें; '
+                        'संभव है रिकॉर्ड में चक्र या गलत नाम हो।',
+                      ),
+                    ),
+                  ),
+                ...roots.map(
+                  (member) => _TreeMemberTile(
+                    member: member,
+                    childrenByFather: childrenByFather,
+                    path: <String>{},
+                    depth: 1,
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+class _TreeMemberTile extends StatelessWidget {
+  final Member member;
+  final Map<String, List<Member>> childrenByFather;
+  final Set<String> path;
+  final int depth;
+
+  const _TreeMemberTile({
+    required this.member,
+    required this.childrenByFather,
+    required this.path,
+    required this.depth,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final key = member.name.trim().toLowerCase();
+    final nextPath = <String>{...path, key};
+    final children = childrenByFather[key] ?? <Member>[];
+    final details = <String>[
+      if (member.generation.isNotEmpty) 'पीढ़ी: ${member.generation}',
+      if (member.father.isNotEmpty) 'पिता: ${member.father}',
+      if (member.village.isNotEmpty) 'गाँव: ${member.village}',
+      if (member.occupation.isNotEmpty) 'काम: ${member.occupation}',
+      if (member.spouse.isNotEmpty) 'जीवनसाथी: ${member.spouse}',
+    ].join('  •  ');
+
+    final safeChildren = children
+        .where((child) => !nextPath.contains(child.name.trim().toLowerCase()))
+        .toList();
+
+    return Card(
+      margin: EdgeInsets.only(left: (depth - 1) * 12.0, bottom: 8),
+      child: safeChildren.isEmpty
+          ? ListTile(
+              leading: CircleAvatar(child: Text(member.name.trim().isEmpty ? '?' : member.name.trim().substring(0, 1))),
+              title: Text(member.name),
+              subtitle: details.isEmpty ? const Text('विवरण उपलब्ध नहीं') : Text(details),
+            )
+          : ExpansionTile(
+              initiallyExpanded: depth < 3,
+              leading: CircleAvatar(child: Text(member.name.trim().isEmpty ? '?' : member.name.trim().substring(0, 1))),
+              title: Text(member.name),
+              subtitle: Text(details.isEmpty ? '${safeChildren.length} अगली पीढ़ी के सदस्य' : '$details  •  ${safeChildren.length} बच्चे'),
+              children: safeChildren
+                  .map(
+                    (child) => _TreeMemberTile(
+                      member: child,
+                      childrenByFather: childrenByFather,
+                      path: nextPath,
+                      depth: depth + 1,
+                    ),
+                  )
+                  .toList(),
+            ),
     );
   }
 }
