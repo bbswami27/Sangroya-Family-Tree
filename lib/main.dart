@@ -471,34 +471,33 @@ class FamilyTreePage extends StatelessWidget {
  const FamilyTreePage({super.key, required this.members});
  @override Widget build(BuildContext context) {
    final counts = <String, int>{};
+   final ids = members.map((m)=>m.memberId).where((id)=>id.isNotEmpty).toSet();
    for (final m in members) {
      final k = m.name.trim().toLowerCase();
      counts[k] = (counts[k] ?? 0) + 1;
    }
    final map = <String, List<Member>>{};
    for (final m in members) {
-     final k = m.fatherId.isNotEmpty ? m.fatherId : m.father.trim().toLowerCase();
-     if (k.isNotEmpty && counts[k] == 1) map.putIfAbsent(k, () => []).add(m);
+     final parentKey = m.fatherId.isNotEmpty && ids.contains(m.fatherId)
+       ? m.fatherId
+       : (m.father.trim().isNotEmpty && counts[m.father.trim().toLowerCase()] == 1 ? m.father.trim().toLowerCase() : '');
+     if (parentKey.isNotEmpty) map.putIfAbsent(parentKey, () => []).add(m);
    }
    final roots = members.where((m) {
-     final k = m.fatherId.isNotEmpty ? m.fatherId : m.father.trim().toLowerCase();
-     return k.isEmpty || counts[k] != 1;
+     if (m.fatherId.isNotEmpty && ids.contains(m.fatherId)) return false;
+     final fatherKey=m.father.trim().toLowerCase();
+     return fatherKey.isEmpty || counts[fatherKey] != 1;
    }).toList()
-     ..sort((a, b) {
-       final ai = int.tryParse(a.generation) ?? 999;
-       final bi = int.tryParse(b.generation) ?? 999;
-       return ai.compareTo(bi);
-     });
+     ..sort((a, b) => (int.tryParse(a.generation) ?? 999).compareTo(int.tryParse(b.generation) ?? 999));
    return Scaffold(
      appBar: AppBar(title: const Text('Family Tree')),
      body: ListView(padding: const EdgeInsets.all(12), children: [
-       const Text('सदस्य के नाम पर क्लिक करके उससे जुड़ी उपलब्ध पूर्वज और अगली पीढ़ियाँ देखें। पिता का नाम सही और अद्वितीय होना आवश्यक है।'),
+       const Text('सदस्य के नाम पर क्लिक करके Member ID से जुड़े पूर्वज और अगली पीढ़ियाँ देखें।'),
        ...roots.map((m) => TreeNode(m: m, map: map, all: members, path: <String>{}, depth: 1)),
      ]),
    );
  }
 }
-
 class TreeNode extends StatelessWidget {
  final Member m;
  final Map<String, List<Member>> map;
