@@ -308,20 +308,48 @@ class ProfilePage extends StatelessWidget {
  final List<Member> all;
  const ProfilePage({super.key, required this.member, required this.all});
 
- List<Member> named(String n) => all.where((m) => m.name.trim().toLowerCase() == n.trim().toLowerCase()).toList();
- List<Member> childrenOf(String n) => all.where((m) => m.father.trim().toLowerCase() == n.trim().toLowerCase()).toList();
- Widget row(String k, String v) => v.isEmpty ? const SizedBox.shrink() : ListTile(title: Text(k), subtitle: Text(v));
+ String norm(String value) => value.trim().toLowerCase().replaceAll(RegExp(r'\\s+'), ' ');
+ int? gen(Member m) => int.tryParse(m.generation.trim());
+ String identity(Member m) => [
+   norm(m.name), norm(m.father), norm(m.mother), norm(m.generation),
+   norm(m.village), norm(m.dob), norm(m.spouse),
+ ].join('|');
+
+ List<Member> named(String n) => all.where((m) => norm(m.name) == norm(n)).toList();
+
+ List<Member> parentMatches(Member child) {
+   final matches = named(child.father);
+   if (matches.length <= 1) return matches;
+   final childGeneration = gen(child);
+   if (childGeneration != null) {
+     final adjacent = matches.where((m) => gen(m) == childGeneration - 1).toList();
+     if (adjacent.length == 1) return adjacent;
+   }
+   return const [];
+ }
+
+ List<Member> childrenOf(Member parent) {
+   final matches = all.where((m) => norm(m.father) == norm(parent.name)).toList();
+   if (matches.length <= 1) return matches;
+   final parentGeneration = gen(parent);
+   if (parentGeneration != null) {
+     final adjacent = matches.where((m) => gen(m) == parentGeneration + 1).toList();
+     if (adjacent.isNotEmpty) return adjacent;
+   }
+   return matches;
+ }
+
+ Widget row(String k, String v) => v.trim().isEmpty ? const SizedBox.shrink() : ListTile(title: Text(k), subtitle: Text(v));
 
  List<Member> ancestors() {
    final result = <Member>[];
    var current = member;
-   final seen = <String>{member.name.trim().toLowerCase()};
+   final seen = <String>{identity(member)};
    for (var i = 0; i < 18 && current.father.trim().isNotEmpty; i++) {
-     final matches = named(current.father);
+     final matches = parentMatches(current);
      if (matches.length != 1) break;
      final next = matches.first;
-     final key = next.name.trim().toLowerCase();
-     if (!seen.add(key)) break;
+     if (!seen.add(identity(next))) break;
      result.add(next);
      current = next;
    }
@@ -331,12 +359,12 @@ class ProfilePage extends StatelessWidget {
  List<Member> descendants() {
    final result = <Member>[];
    final queue = <Member>[member];
-   final seen = <String>{member.name.trim().toLowerCase()};
-   while (queue.isNotEmpty && result.length < 1000) {
+   final seen = <String>{identity(member)};
+   while (queue.isNotEmpty && result.length < 2000) {
      final parent = queue.removeAt(0);
-     for (final child in childrenOf(parent.name)) {
-       final key = child.name.trim().toLowerCase();
-       if (key.isNotEmpty && seen.add(key)) {
+     for (final child in childrenOf(parent)) {
+       final key = identity(child);
+       if (key != identity(parent) && seen.add(key)) {
          result.add(child);
          queue.add(child);
        }
@@ -350,48 +378,55 @@ class ProfilePage extends StatelessWidget {
    final down = descendants();
    return Scaffold(
      appBar: AppBar(title: Text(member.name)),
-     body: ListView(padding: const EdgeInsets.all(12), children: [
-       if (member.photoPath.isNotEmpty && File(member.photoPath).existsSync())
-         Center(child: CircleAvatar(radius: 58, backgroundImage: FileImage(File(member.photoPath)))),
-       Card(child: Column(children: [
-         row('पीढ़ी संख्या / Generation', member.generation),
-         row('लिंग', member.gender), row('जन्म तिथि', member.dob),
-         row('मृत्यु तिथि', member.dod), row('जन्म स्थान', member.village),
-         row('पिता', member.father), row('माता', member.mother),
-       ])),
-       Card(child: Column(children: [
-         const ListTile(title: Text('पूर्वज / पहले की पीढ़ियाँ')),
-         if (up.isEmpty) const ListTile(subtitle: Text('पिता/पूर्वज का मिलान नहीं मिला। नाम या पिता का नाम जाँचें।')),
-         ...up.map((m) => ListTile(
-           leading: const Icon(Icons.arrow_upward),
-           title: Text(m.name),
-           subtitle: Text('पीढ़ी: ${m.generation.isEmpty ? 'दर्ज नहीं' : m.generation} • पिता: ${m.father.isEmpty ? 'दर्ज नहीं' : m.father}'),
-           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProfilePage(member: m, all: all))),
-         )),
-       ])),
-       Card(child: Column(children: [
-         row('जीवनसाथी', member.spouse), row('जीवनसाथी का शहर', member.spouseCity),
-         row('जीवनसाथी की जाति', member.spouseCaste), row('जीवनसाथी का गोत्र', member.spouseGotra),
-         row('विवाह तारीख', member.marriageDate),
-       ])),
-       Card(child: Column(children: [
-         row('पेशा', member.occupation), row('Job Type', member.jobType),
-         row('देश', member.jobCountry), row('Government Level', member.govtLevel),
-         row('Company / Department', member.jobCompany), row('Job Title', member.jobTitle),
-         row('Job Details', member.jobDetails), row('Visited Places', member.visitedPlaces),
-         row('Visit Years', member.visitYears),
-       ])),
-       Card(child: Column(children: [
-         ListTile(title: Text('बाद की पीढ़ियाँ / वंशज (${down.length})')),
-         if (down.isEmpty) const ListTile(subtitle: Text('इस सदस्य के नाम से पिता का रिकॉर्ड मिलाकर कोई संतान नहीं मिली।')),
-         ...down.map((m) => ListTile(
-           leading: const Icon(Icons.arrow_downward),
-           title: Text(m.name),
-           subtitle: Text('पीढ़ी: ${m.generation.isEmpty ? 'दर्ज नहीं' : m.generation} • पिता: ${m.father}'),
-           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProfilePage(member: m, all: all))),
-         )),
-       ])),
-     ]),
+     body: SafeArea(
+       child: ListView(
+         primary: true,
+         physics: const AlwaysScrollableScrollPhysics(),
+         padding: const EdgeInsets.fromLTRB(12, 12, 12, 36),
+         children: [
+           if (member.photoPath.isNotEmpty && File(member.photoPath).existsSync())
+             Center(child: CircleAvatar(radius: 58, backgroundImage: FileImage(File(member.photoPath)))),
+           Card(child: Column(children: [
+             row('पीढ़ी संख्या / Generation', member.generation),
+             row('लिंग', member.gender), row('जन्म तिथि', member.dob),
+             row('मृत्यु तिथि', member.dod), row('जन्म स्थान', member.village),
+             row('पिता', member.father), row('माता', member.mother),
+           ])),
+           Card(child: Column(children: [
+             const ListTile(title: Text('पूर्वज / पहले की पीढ़ियाँ')),
+             if (up.isEmpty) const ListTile(subtitle: Text('पूर्वज का मिलान नहीं मिला। पिता का नाम, पीढ़ी संख्या और रिकॉर्ड की वर्तनी जाँचें। एक जैसे नाम होने पर गलत रिश्ता जोड़ने के बजाय मिलान रोका जाता है।')),
+             ...up.map((m) => ListTile(
+               leading: const Icon(Icons.arrow_upward),
+               title: Text(m.name),
+               subtitle: Text('पीढ़ी: ${m.generation.isEmpty ? 'दर्ज नहीं' : m.generation} • पिता: ${m.father.isEmpty ? 'दर्ज नहीं' : m.father}'),
+               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProfilePage(member: m, all: all))),
+             )),
+           ])),
+           Card(child: Column(children: [
+             row('जीवनसाथी', member.spouse), row('जीवनसाथी का शहर', member.spouseCity),
+             row('जीवनसाथी की जाति', member.spouseCaste), row('जीवनसाथी का गोत्र', member.spouseGotra),
+             row('विवाह तारीख', member.marriageDate),
+           ])),
+           Card(child: Column(children: [
+             row('पेशा', member.occupation), row('Job Type', member.jobType),
+             row('देश', member.jobCountry), row('Government Level', member.govtLevel),
+             row('Company / Department', member.jobCompany), row('Job Title', member.jobTitle),
+             row('Job Details', member.jobDetails), row('Visited Places', member.visitedPlaces),
+             row('Visit Years', member.visitYears), row('अन्य जानकारी', member.notes),
+           ])),
+           Card(child: Column(children: [
+             ListTile(title: Text('बाद की पीढ़ियाँ / वंशज (${down.length})')),
+             if (down.isEmpty) const ListTile(subtitle: Text('इस सदस्य के नाम से पिता का रिकॉर्ड मिलाकर कोई संतान नहीं मिली। पिता का नाम और अगली पीढ़ी संख्या जाँचें।')),
+             ...down.map((m) => ListTile(
+               leading: const Icon(Icons.arrow_downward),
+               title: Text(m.name),
+               subtitle: Text('पीढ़ी: ${m.generation.isEmpty ? 'दर्ज नहीं' : m.generation} • पिता: ${m.father}'),
+               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProfilePage(member: m, all: all))),
+             )),
+           ])),
+         ],
+       ),
+     ),
    );
  }
 }
