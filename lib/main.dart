@@ -63,7 +63,149 @@ class _FamilyHomeState extends State<FamilyHome>{
  Future<void> downloadDocument(FamilyDocument d) async { final file=File(d.path); if(!await file.exists()){setState(()=>status='मूल फाइल नहीं मिली');return;} final bytes=await file.readAsBytes(); await FilePicker.platform.saveFile(dialogTitle:'फाइल सेव करें',fileName:d.name,bytes:bytes); }
  Future<void> exportBackup() async { final payload=jsonEncode({'members':members.map((m)=>m.toJson()).toList(),'documents':documents.map((d)=>d.toJson()).toList()}); await FilePicker.platform.saveFile(dialogTitle:'Family Backup सेव करें',fileName:'Sangroya_Family_Backup.json',bytes:Uint8List.fromList(utf8.encode(payload))); }
  Future<void> edit([int? i])async{final m=await showDialog<Member>(context:context,builder:(_)=>MemberForm(member:i==null?const Member():members[i]));if(m!=null){setState((){if(i==null){members.add(m);}else{members[i]=m;}status='जानकारी सुरक्षित हुई';});await save();}}
- Future<void> importExcel()async{final p=await FilePicker.platform.pickFiles(type:FileType.custom,allowedExtensions:['xlsx','xls'],withData:true);if(p==null||p.files.single.bytes==null){return;}try{final w=Excel.decodeBytes(p.files.single.bytes!);final added=<Member>[];for(final sh in w.tables.values){if(sh.rows.isEmpty)continue;final h=sh.rows.first.map((c)=>(c?.value?.toString()??'').toLowerCase()).toList();int ix(String s)=>h.indexWhere((x)=>x.contains(s));String v(List<Data?> r,int n)=>n<0||n>=r.length?'':(r[n]?.value?.toString()??'');for(final r in sh.rows.skip(1)){final n=v(r,ix('name'));if(n.trim().isEmpty){continue;}added.add(Member(name:n,gender:v(r,ix('gender')),father:v(r,ix('father')),mother:v(r,ix('mother')),village:v(r,ix('village')),occupation:v(r,ix('occupation')),spouse:v(r,ix('life partner')),spouseCity:v(r,ix('partner city')),spouseCaste:v(r,ix('life partner caste')),spouseGotra:v(r,ix('life partner gotra')),generation:v(r,ix('generation')),dob:v(r,ix('date of birth')),dod:v(r,ix('date of death')),marriageDate:v(r,ix('marriage date')),visitedPlaces:v(r,ix('places visited')),visitYears:v(r,ix('visit years')),jobType:v(r,ix('job type')),govtLevel:v(r,ix('government level')),jobCompany:v(r,ix('company')),jobTitle:v(r,ix('job title')),jobCountry:v(r,ix('job country')),jobDetails:v(r,ix('job details')),notes:v(r,ix('notes')),travelPlace:v(r,ix('travel place')),travelYear:v(r,ix('travel year')),travelDate:v(r,ix('travel date')),travelPurpose:v(r,ix('purpose of travel'))));}}setState(()=>members.addAll(added));await save();setState(()=>status='${added.length} records Import हुए');}catch(e){setState(()=>status='Excel error: $e');}}
+ Future<void> importExcel() async {
+  try {
+    setState(() => status = 'Excel फाइल पढ़ी जा रही है...');
+    final picked = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['xlsx', 'xls'],
+      withData: true,
+    );
+    if (picked == null) {
+      if (mounted) setState(() => status = 'कोई Excel फाइल नहीं चुनी गई');
+      return;
+    }
+
+    final file = picked.files.single;
+    Uint8List? bytes = file.bytes;
+    // Android पर कुछ file providers bytes नहीं देते, केवल path देते हैं।
+    if (bytes == null && file.path != null) {
+      final localFile = File(file.path!);
+      if (await localFile.exists()) bytes = await localFile.readAsBytes();
+    }
+    if (bytes == null || bytes.isEmpty) {
+      if (mounted) setState(() => status = 'फाइल पढ़ी नहीं जा सकी। कृपया Excel फाइल को फोन में डाउनलोड करके फिर चुनें।');
+      return;
+    }
+
+    final extension = (file.extension ?? '').toLowerCase();
+    if (extension == 'xls') {
+      if (mounted) setState(() => status = 'कृपया फाइल को Excel में .xlsx फॉर्मेट में Save करके दोबारा Import करें।');
+      return;
+    }
+
+    final workbook = Excel.decodeBytes(bytes);
+    if (workbook.tables.isEmpty) {
+      if (mounted) setState(() => status = 'Excel में कोई Worksheet नहीं मिली।');
+      return;
+    }
+
+    final added = <Member>[];
+    var skipped = 0;
+    var foundNameColumn = false;
+
+    String cleanHeader(Data? cell) {
+      return (cell?.value?.toString() ?? '')
+          .trim()
+          .toLowerCase()
+          .replaceAll(RegExp(r'[^a-z0-9]+'), ' ')
+          .replaceAll(RegExp(r'\\s+'), ' ');
+    }
+
+    String cellText(List<Data?> row, int index) {
+      if (index < 0 || index >= row.length) return '';
+      final value = row[index]?.value;
+      return value?.toString().trim() ?? '';
+    }
+
+    int findColumn(List<String> headers, List<String> aliases) {
+      for (var i = 0; i < headers.length; i++) {
+        if (aliases.any((alias) => headers[i] == alias || headers[i].contains(alias))) return i;
+      }
+      return -1;
+    }
+
+    for (final sheet in workbook.tables.values) {
+      if (sheet.rows.isEmpty) continue;
+
+      // Header row को पहले 5 rows में खोजें, ताकि ऊपर title/blank row होने पर भी import हो।
+      var headerRowIndex = -1;
+      var nameColumn = -1;
+      for (var rowIndex = 0; rowIndex < sheet.rows.length && rowIndex < 5; rowIndex++) {
+        final headers = sheet.rows[rowIndex].map(cleanHeader).toList();
+        final candidate = findColumn(headers, ['name', 'member name', 'full name', 'पूरा नाम', 'नाम']);
+        if (candidate >= 0) {
+          headerRowIndex = rowIndex;
+          nameColumn = candidate;
+          break;
+        }
+      }
+      if (headerRowIndex < 0) continue;
+      foundNameColumn = true;
+
+      final headers = sheet.rows[headerRowIndex].map(cleanHeader).toList();
+      int col(List<String> names) => findColumn(headers, names);
+      final nameIx = nameColumn;
+
+      for (final row in sheet.rows.skip(headerRowIndex + 1)) {
+        final name = cellText(row, nameIx);
+        if (name.isEmpty) {
+          skipped++;
+          continue;
+        }
+        added.add(Member(
+          name: name,
+          gender: cellText(row, col(['gender', 'लिंग'])),
+          father: cellText(row, col(['father', 'पिता'])),
+          mother: cellText(row, col(['mother', 'माता'])),
+          village: cellText(row, col(['village', 'birth place', 'गांव', 'गाँव'])),
+          occupation: cellText(row, col(['occupation', 'profession', 'पेशा'])),
+          spouse: cellText(row, col(['life partner', 'spouse', 'जीवनसाथी'])),
+          spouseCity: cellText(row, col(['partner city', 'life partner city'])),
+          spouseCaste: cellText(row, col(['life partner caste', 'spouse caste'])),
+          spouseGotra: cellText(row, col(['life partner gotra', 'spouse gotra'])),
+          generation: cellText(row, col(['generation', 'पीढ़ी'])),
+          dob: cellText(row, col(['date of birth', 'dob'])),
+          dod: cellText(row, col(['date of death', 'dod'])),
+          marriageDate: cellText(row, col(['marriage date'])),
+          visitedPlaces: cellText(row, col(['places visited', 'visited places'])),
+          visitYears: cellText(row, col(['visit years'])),
+          jobType: cellText(row, col(['job type'])),
+          govtLevel: cellText(row, col(['government level', 'govt level'])),
+          jobCompany: cellText(row, col(['company', 'department'])),
+          jobTitle: cellText(row, col(['job title', 'designation'])),
+          jobCountry: cellText(row, col(['job country'])),
+          jobDetails: cellText(row, col(['job details'])),
+          notes: cellText(row, col(['notes', 'remarks'])),
+          travelPlace: cellText(row, col(['ancestral travel place', 'travel place'])),
+          travelYear: cellText(row, col(['travel year'])),
+          travelDate: cellText(row, col(['travel date'])),
+          travelPurpose: cellText(row, col(['purpose of travel', 'travel purpose'])),
+        ));
+      }
+    }
+
+    if (!foundNameColumn) {
+      if (mounted) setState(() => status = 'Excel में Name कॉलम नहीं मिला। कृपया ऐप का Excel Template इस्तेमाल करें।');
+      return;
+    }
+    if (added.isEmpty) {
+      if (mounted) setState(() => status = 'Name कॉलम मिला, लेकिन कोई सदस्य रिकॉर्ड नहीं मिला। डेटा दूसरी पंक्ति से भरें।');
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() {
+      members.addAll(added);
+      status = '${added.length} सदस्य Import हुए। ${skipped > 0 ? '$skipped खाली पंक्तियाँ छोड़ी गईं।' : ''}';
+    });
+    await save();
+    if (mounted) setState(() => status = '${added.length} सदस्य सफलतापूर्वक Import और Save हुए। ${skipped > 0 ? '$skipped खाली पंक्तियाँ छोड़ी गईं।' : ''}');
+  } catch (e, stack) {
+    debugPrint('Excel import error: $e\\n$stack');
+    if (mounted) setState(() => status = 'Excel Import Error: $e');
+  }
+ }
  Future<void> template()async{final x=Excel.createExcel();final s=x['Family Members'];const h=['Name','Gender','Father','Mother','Village','Occupation','Life Partner','Life Partner City','Life Partner Caste','Life Partner Gotra','Generation','Date of Birth','Date of Death','Marriage Date','Places Visited','Visit Years','Job Type (Government/Private)','Government Level (State/UP/Central)','Company / Department','Job Title / Designation','Job Country','Job Details','Notes','Ancestral Travel Place','Travel Year (Optional)','Travel Date (Optional)','Purpose of Travel'];s.appendRow(h.map((v)=>TextCellValue(v)).toList());s.appendRow(['नाम','पुरुष/महिला','पिता','माता','गाँव/शहर','पेशा','जीवनसाथी','शहर','जाति','गोत्र','1','DD-MM-YYYY','DD-MM-YYYY','DD-MM-YYYY','शहर/देश','वर्ष','Government/Private','State/UP/Central','कंपनी/विभाग','पद/Designation','देश','अन्य विवरण','अन्य','यात्रा स्थान','वैकल्पिक वर्ष','वैकल्पिक तारीख','यात्रा उद्देश्य'].map((v)=>TextCellValue(v)).toList());final b=x.encode();if(b!=null)await FilePicker.platform.saveFile(dialogTitle:'Excel Template सेव करें',fileName:'Sangroya_Family_Tree_Template.xlsx',bytes:Uint8List.fromList(b));}
  void tree()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>FamilyTreePage(members:members)));
  void showDocuments({bool closeDrawer = false}) {
