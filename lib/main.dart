@@ -9,7 +9,11 @@ import 'dart:io';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-Future<void> main() async {\n  WidgetsFlutterBinding.ensureInitialized();\n  await Firebase.initializeApp();\n  runApp(const SangroyaApp());\n}
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const SangroyaApp());
+}
 class SangroyaApp extends StatelessWidget {
  const SangroyaApp({super.key});
  @override Widget build(BuildContext context)=>MaterialApp(title:'SANGROYA FAMILY TREE',debugShowCheckedModeBanner:false,theme:ThemeData(
@@ -106,13 +110,43 @@ class _FamilyHomeState extends State<FamilyHome>{
   }
   void showAccess(bool registration){Navigator.pop(context);Navigator.push(context,MaterialPageRoute(builder:(_)=>AccessPage(registration:registration)));}
  @override Widget build(BuildContext context)=>Scaffold(
- drawer:Drawer(child:SafeArea(child:ListView(padding:EdgeInsets.zero,physics:const AlwaysScrollableScrollPhysics(),children:[DrawerHeader(decoration:const BoxDecoration(gradient:LinearGradient(colors:[Color(0xFF0B4A22),Color(0xFF27A36B)])),child:const Column(crossAxisAlignment:CrossAxisAlignment.start,mainAxisAlignment:MainAxisAlignment.end,children:[Icon(Icons.account_tree,color:Colors.white,size:38),Text('SANGROYA FAMILY TREE',style:TextStyle(color:Colors.white,fontWeight:FontWeight.bold,fontSize:18)),Text('परिवार की डिजिटल वंशावली',style:TextStyle(color:Colors.white))])),ListTile(leading:const Icon(Icons.upload_file),title:const Text('Upload PDF / JPEG'),onTap:(){Navigator.pop(context);uploadDocument();}),ListTile(leading:const Icon(Icons.download),title:const Text('Download / Backup'),onTap:(){Navigator.pop(context);exportBackup();}),ListTile(leading:const Icon(Icons.person_add),title:const Text('Add Family Member'),onTap:(){Navigator.pop(context);edit();}),ListTile(leading:const Icon(Icons.table_view),title:const Text('Bulk Add — Excel Import'),subtitle:const Text('कई सदस्यों को एक साथ जोड़ें'),onTap:(){Navigator.pop(context);importExcel();}),ListTile(leading:const Icon(Icons.file_download),title:const Text('Excel Template डाउनलोड करें'),onTap:(){Navigator.pop(context);template();}),ListTile(leading:const Icon(Icons.account_tree),title:const Text('Family Tree'),onTap:(){Navigator.pop(context);tree();}),ListTile(leading:const Icon(Icons.folder),title:const Text('Documents / Gallery'),onTap:()=>showDocuments(closeDrawer:true)),ListTile(leading:const Icon(Icons.travel_explore),title:const Text('पूर्वजों की यात्रा'),onTap:(){Navigator.pop(context);Navigator.push(context,MaterialPageRoute(builder:(_)=>TravelPage(members:members)));}),ListTile(leading:const Icon(Icons.history_edu),title:const Text('बैरागी संप्रदाय का इतिहास'),onTap:(){Navigator.pop(context);Navigator.push(context,MaterialPageRoute(builder:(_)=>const CommunityHistoryPage()));}),const Divider(),ListTile(leading:const Icon(Icons.login),title:const Text('Family Login'),onTap:()=>showAccess(false)),ListTile(leading:const Icon(Icons.app_registration),title:const Text('Mobile Registration'),onTap:()=>showAccess(true)),const ListTile(leading:Icon(Icons.admin_panel_settings),title:Text('Admin Panel — अगला चरण'),subtitle:Text('केवल Super Admin के लिए'))])),
+  drawer: Drawer(
+    child: SafeArea(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          DrawerHeader(
+            decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF0B4A22), Color(0xFF27A36B)])),
+            child: const Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.end, children: [
+              Icon(Icons.account_tree, color: Colors.white, size: 38),
+              Text('SANGROYA FAMILY TREE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+              Text('परिवार की डिजिटल वंशावली', style: TextStyle(color: Colors.white)),
+            ]),
+          ),
+          ListTile(leading: const Icon(Icons.upload_file), title: const Text('Upload PDF / JPEG'), onTap: () { Navigator.pop(context); uploadDocument(); }),
+          ListTile(leading: const Icon(Icons.download), title: const Text('Download / Backup'), onTap: () { Navigator.pop(context); exportBackup(); }),
+          ListTile(leading: const Icon(Icons.person_add), title: const Text('Add Family Member'), onTap: () { Navigator.pop(context); edit(); }),
+          ListTile(leading: const Icon(Icons.table_view), title: const Text('Bulk Add — Excel Import'), subtitle: const Text('कई सदस्यों को एक साथ जोड़ें'), onTap: () { Navigator.pop(context); importExcel(); }),
+          ListTile(leading: const Icon(Icons.file_download), title: const Text('Excel Template डाउनलोड करें'), onTap: () { Navigator.pop(context); template(); }),
+          ListTile(leading: const Icon(Icons.account_tree), title: const Text('Family Tree'), onTap: () { Navigator.pop(context); tree(); }),
+          ListTile(leading: const Icon(Icons.folder), title: const Text('Documents / Gallery'), onTap: () => showDocuments(closeDrawer: true)),
+          ListTile(leading: const Icon(Icons.travel_explore), title: const Text('पूर्वजों की यात्रा'), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => TravelPage(members: members))); }),
+          ListTile(leading: const Icon(Icons.history_edu), title: const Text('बैरागी संप्रदाय का इतिहास'), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const CommunityHistoryPage())); }),
+          const Divider(),
+          ListTile(leading: const Icon(Icons.login), title: const Text('Family Login'), onTap: () => showAccess(false)),
+          ListTile(leading: const Icon(Icons.app_registration), title: const Text('Mobile Registration'), onTap: () => showAccess(true)),
+          const ListTile(leading: Icon(Icons.admin_panel_settings), title: Text('Admin Panel — अगला चरण'), subtitle: Text('केवल Super Admin के लिए')),
+        ],
+      ),
+    ),
+  ),
  appBar:AppBar(title:const Text('SANGROYA FAMILY TREE'),actions:[IconButton(onPressed:()=>showDocuments(),icon:const Icon(Icons.folder_open))]),
  body:Container(decoration:const BoxDecoration(gradient:LinearGradient(begin:Alignment.topLeft,end:Alignment.bottomRight,colors:[Color(0xFFEAF7EF),Color(0xFFFFF1DC),Color(0xFFF4FAF2)])),child:ListView(padding:const EdgeInsets.all(14),children:[
  Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFF0B4A22),Color(0xFF2C8B61)]),borderRadius:BorderRadius.circular(20)),child:const Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('हमारी विरासत, हमारी पहचान',style:TextStyle(color:Colors.white,fontSize:21,fontWeight:FontWeight.bold)),Text('हमारी धरोहर',style:TextStyle(color:Colors.white70))])),
  const SizedBox(height:12),GridView.count(crossAxisCount:2,shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),crossAxisSpacing:10,mainAxisSpacing:10,childAspectRatio:1.55,children:[_dash(Icons.account_tree,'Family Tree','वंशावली देखें',const Color(0xFF236B52),tree),_dash(Icons.person_add_alt_1,'Add Member','नया सदस्य जोड़ें',const Color(0xFFFF8A00),()=>edit()),_dash(Icons.upload_file,'Upload Files','PDF / JPEG / PNG',const Color(0xFF2C8B57),uploadDocument),_dash(Icons.download,'Download','Backup / Export',const Color(0xFFFF9A1F),exportBackup),_dash(Icons.table_view,'Bulk Add','Excel से सदस्य जोड़ें',const Color(0xFF176B3A),importExcel),_dash(Icons.file_download,'Excel Template','पहले फॉर्मेट डाउनलोड करें',const Color(0xFFB56A12),template)]),
  Card(child:ListTile(title:const Text('कुल परिवार सदस्य'),trailing:Text('${members.length}',style:const TextStyle(fontSize:24,fontWeight:FontWeight.bold)))),Card(child:ListTile(title:const Text('अपलोड दस्तावेज़'),trailing:Text('${documents.length}',style:const TextStyle(fontSize:24,fontWeight:FontWeight.bold)),onTap:()=>showDocuments())),Text(status),const Text('सदस्य सूची',style:TextStyle(fontWeight:FontWeight.bold,fontSize:18)),...members.asMap().entries.map((e)=>Card(child:ListTile(title:Text(e.value.name),subtitle:Text([e.value.gender,e.value.village,e.value.father].where((x)=>x.isNotEmpty).join(' • ')),onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>ProfilePage(member:e.value,all:members))),trailing:IconButton(icon:const Icon(Icons.edit),onPressed:()=>edit(e.key))))),const SizedBox(height:70)])),
- floatingActionButton:FloatingActionButton.extended(onPressed:()=>edit(),icon:const Icon(Icons.person_add),label:const Text('Member जोड़ें')));
+  floatingActionButton: FloatingActionButton.extended(onPressed: () => edit(), icon: const Icon(Icons.person_add), label: const Text('Member जोड़ें')));
  Widget _dash(IconData icon,String title,String sub,Color color,VoidCallback action)=>InkWell(onTap:action,borderRadius:BorderRadius.circular(16),child:Container(padding:const EdgeInsets.all(13),decoration:BoxDecoration(color:color,borderRadius:BorderRadius.circular(16)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,mainAxisAlignment:MainAxisAlignment.center,children:[Icon(icon,color:Colors.white,size:28),const SizedBox(height:6),Text(title,style:const TextStyle(color:Colors.white,fontWeight:FontWeight.bold,fontSize:16)),Text(sub,style:const TextStyle(color:Colors.white70,fontSize:12))])));
 
 }
@@ -175,7 +209,7 @@ class _AccessPageState extends State<AccessPage>{
  @override void dispose(){name.dispose();mobile.dispose();email.dispose();relation.dispose();password.dispose();super.dispose();}
  Future<void> _send(bool whatsapp)async{
   final target=role=='Super Admin'?'Super Admin':role=='Admin'?'Admin':'Family Member';
-  final message='SANGROYA FAMILY TREE — सदस्यता / एक्सेस अनुरोध\\nनाम: ${name.text}\\nमोबाइल: ${mobile.text}\\nईमेल: ${email.text}\\nअनुरोध: ${target}\\nपरिवार से संबंध: ${relation.text}\\nकृपया मुझे परिवार ऐप का सुरक्षित आमंत्रण लिंक भेजें।';
+  final message='SANGROYA FAMILY TREE — सदस्यता / एक्सेस अनुरोध\\nनाम: name.text\\nमोबाइल: mobile.text\\nईमेल: email.text\\nअनुरोध: target\\nपरिवार से संबंध: relation.text\\nकृपया मुझे परिवार ऐप का सुरक्षित आमंत्रण लिंक भेजें।';
   final uri=whatsapp?Uri.parse('https://wa.me/?text=${Uri.encodeComponent(message)}'):Uri(scheme:'mailto',path:email.text.trim(),queryParameters:{'subject':'SANGROYA FAMILY TREE Access Request','body':message});
   if(!await launchUrl(uri,mode:LaunchMode.externalApplication)&&mounted){ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('यह ऐप/ईमेल सेवा उपलब्ध नहीं है।')));}
  }
@@ -187,7 +221,7 @@ class _AccessPageState extends State<AccessPage>{
  const SizedBox(height:12),TextField(controller:name,decoration:const InputDecoration(labelText:'पूरा नाम',border:OutlineInputBorder())),
  const SizedBox(height:9),TextField(controller:mobile,keyboardType:TextInputType.phone,decoration:const InputDecoration(labelText:'मोबाइल नंबर',border:OutlineInputBorder())),
  const SizedBox(height:9),TextField(controller:email,keyboardType:TextInputType.emailAddress,decoration:const InputDecoration(labelText:'ईमेल',border:OutlineInputBorder())),
- const SizedBox(height:9),DropdownButtonFormField<String>(value:role,decoration:const InputDecoration(labelText:'किससे अनुरोध भेजना है',border:OutlineInputBorder()),items:const [DropdownMenuItem(value:'Super Admin',child:Text('Super Admin')),DropdownMenuItem(value:'Admin',child:Text('Admin')),DropdownMenuItem(value:'Family Member',child:Text('Family Member'))],onChanged:(v){if(v!=null)setState(()=>role=v);}),
+ const SizedBox(height:9),DropdownButtonFormField<String>(initialValue:role,decoration:const InputDecoration(labelText:'किससे अनुरोध भेजना है',border:OutlineInputBorder()),items:const [DropdownMenuItem(value:'Super Admin',child:Text('Super Admin')),DropdownMenuItem(value:'Admin',child:Text('Admin')),DropdownMenuItem(value:'Family Member',child:Text('Family Member'))],onChanged:(v){if(v!=null)setState(()=>role=v);}),
  const SizedBox(height:9),TextField(controller:relation,decoration:const InputDecoration(labelText:'परिवार से संबंध / गाँव',border:OutlineInputBorder())),
  const SizedBox(height:14),Row(children:[Expanded(child:FilledButton.icon(onPressed:()=>_send(true),icon:const Icon(Icons.chat),label:const Text('WhatsApp लिंक'))),const SizedBox(width:8),Expanded(child:OutlinedButton.icon(onPressed:()=>_send(false),icon:const Icon(Icons.email),label:const Text('Email अनुरोध')))]),
  ]else...[
