@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'package:url_launcher/url_launcher.dart';
 
 void main()=>runApp(const SangroyaApp());
 class SangroyaApp extends StatelessWidget {
@@ -104,7 +105,7 @@ class _FamilyHomeState extends State<FamilyHome>{
   }
   void showAccess(bool registration){Navigator.pop(context);Navigator.push(context,MaterialPageRoute(builder:(_)=>AccessPage(registration:registration)));}
  @override Widget build(BuildContext context)=>Scaffold(
- drawer:Drawer(child:ListView(padding:EdgeInsets.zero,children:[DrawerHeader(decoration:const BoxDecoration(gradient:LinearGradient(colors:[Color(0xFF0B4A22),Color(0xFF27A36B)])),child:const Column(crossAxisAlignment:CrossAxisAlignment.start,mainAxisAlignment:MainAxisAlignment.end,children:[Icon(Icons.account_tree,color:Colors.white,size:38),Text('SANGROYA FAMILY TREE',style:TextStyle(color:Colors.white,fontWeight:FontWeight.bold,fontSize:18)),Text('परिवार की डिजिटल वंशावली',style:TextStyle(color:Colors.white))])),ListTile(leading:const Icon(Icons.upload_file),title:const Text('Upload PDF / JPEG'),onTap:(){Navigator.pop(context);uploadDocument();}),ListTile(leading:const Icon(Icons.download),title:const Text('Download / Backup'),onTap:(){Navigator.pop(context);exportBackup();}),ListTile(leading:const Icon(Icons.person_add),title:const Text('Add Family Member'),onTap:(){Navigator.pop(context);edit();}),ListTile(leading:const Icon(Icons.table_view),title:const Text('Bulk Add — Excel Import'),subtitle:const Text('कई सदस्यों को एक साथ जोड़ें'),onTap:(){Navigator.pop(context);importExcel();}),ListTile(leading:const Icon(Icons.file_download),title:const Text('Excel Template डाउनलोड करें'),onTap:(){Navigator.pop(context);template();}),ListTile(leading:const Icon(Icons.account_tree),title:const Text('Family Tree'),onTap:(){Navigator.pop(context);tree();}),ListTile(leading:const Icon(Icons.folder),title:const Text('Documents / Gallery'),onTap:()=>showDocuments(closeDrawer:true)),ListTile(leading:const Icon(Icons.travel_explore),title:const Text('पूर्वजों की यात्रा'),onTap:(){Navigator.pop(context);Navigator.push(context,MaterialPageRoute(builder:(_)=>TravelPage(members:members)));}),ListTile(leading:const Icon(Icons.history_edu),title:const Text('बैरागी संप्रदाय का इतिहास'),onTap:(){Navigator.pop(context);Navigator.push(context,MaterialPageRoute(builder:(_)=>const CommunityHistoryPage()));}),const Divider(),ListTile(leading:const Icon(Icons.login),title:const Text('Family Login'),onTap:()=>showAccess(false)),ListTile(leading:const Icon(Icons.app_registration),title:const Text('Mobile Registration'),onTap:()=>showAccess(true)),const ListTile(leading:Icon(Icons.admin_panel_settings),title:Text('Admin Panel — अगला चरण'),subtitle:Text('केवल Super Admin के लिए'))])),
+ drawer:Drawer(child:SafeArea(child:ListView(padding:EdgeInsets.zero,physics:const AlwaysScrollableScrollPhysics(),children:[DrawerHeader(decoration:const BoxDecoration(gradient:LinearGradient(colors:[Color(0xFF0B4A22),Color(0xFF27A36B)])),child:const Column(crossAxisAlignment:CrossAxisAlignment.start,mainAxisAlignment:MainAxisAlignment.end,children:[Icon(Icons.account_tree,color:Colors.white,size:38),Text('SANGROYA FAMILY TREE',style:TextStyle(color:Colors.white,fontWeight:FontWeight.bold,fontSize:18)),Text('परिवार की डिजिटल वंशावली',style:TextStyle(color:Colors.white))])),ListTile(leading:const Icon(Icons.upload_file),title:const Text('Upload PDF / JPEG'),onTap:(){Navigator.pop(context);uploadDocument();}),ListTile(leading:const Icon(Icons.download),title:const Text('Download / Backup'),onTap:(){Navigator.pop(context);exportBackup();}),ListTile(leading:const Icon(Icons.person_add),title:const Text('Add Family Member'),onTap:(){Navigator.pop(context);edit();}),ListTile(leading:const Icon(Icons.table_view),title:const Text('Bulk Add — Excel Import'),subtitle:const Text('कई सदस्यों को एक साथ जोड़ें'),onTap:(){Navigator.pop(context);importExcel();}),ListTile(leading:const Icon(Icons.file_download),title:const Text('Excel Template डाउनलोड करें'),onTap:(){Navigator.pop(context);template();}),ListTile(leading:const Icon(Icons.account_tree),title:const Text('Family Tree'),onTap:(){Navigator.pop(context);tree();}),ListTile(leading:const Icon(Icons.folder),title:const Text('Documents / Gallery'),onTap:()=>showDocuments(closeDrawer:true)),ListTile(leading:const Icon(Icons.travel_explore),title:const Text('पूर्वजों की यात्रा'),onTap:(){Navigator.pop(context);Navigator.push(context,MaterialPageRoute(builder:(_)=>TravelPage(members:members)));}),ListTile(leading:const Icon(Icons.history_edu),title:const Text('बैरागी संप्रदाय का इतिहास'),onTap:(){Navigator.pop(context);Navigator.push(context,MaterialPageRoute(builder:(_)=>const CommunityHistoryPage()));}),const Divider(),ListTile(leading:const Icon(Icons.login),title:const Text('Family Login'),onTap:()=>showAccess(false)),ListTile(leading:const Icon(Icons.app_registration),title:const Text('Mobile Registration'),onTap:()=>showAccess(true)),const ListTile(leading:Icon(Icons.admin_panel_settings),title:Text('Admin Panel — अगला चरण'),subtitle:Text('केवल Super Admin के लिए'))])),
  appBar:AppBar(title:const Text('SANGROYA FAMILY TREE'),actions:[IconButton(onPressed:()=>showDocuments(),icon:const Icon(Icons.folder_open))]),
  body:Container(decoration:const BoxDecoration(gradient:LinearGradient(begin:Alignment.topLeft,end:Alignment.bottomRight,colors:[Color(0xFFEAF7EF),Color(0xFFFFF1DC),Color(0xFFF4FAF2)])),child:ListView(padding:const EdgeInsets.all(14),children:[
  Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFF0B4A22),Color(0xFF2C8B61)]),borderRadius:BorderRadius.circular(20)),child:const Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('हमारी विरासत, हमारी पहचान',style:TextStyle(color:Colors.white,fontSize:21,fontWeight:FontWeight.bold)),Text('हमारी धरोहर',style:TextStyle(color:Colors.white70))])),
@@ -133,15 +134,21 @@ class FamilyTreePage extends StatelessWidget{final List<Member> members;const Fa
 class TreeNode extends StatelessWidget{final Member m;final Map<String,List<Member>> map;final List<Member> all;final Set<String> path;final int depth;const TreeNode({super.key,required this.m,required this.map,required this.all,required this.path,required this.depth});@override Widget build(BuildContext context){final k=m.name.toLowerCase().trim();final p={...path,k};final kids=(map[k]??[]).where((x)=>!p.contains(x.name.toLowerCase().trim())).toList();final tile=ListTile(title:Text(m.name),subtitle:Text([m.gender,m.village,m.spouse].where((x)=>x.isNotEmpty).join(' • ')),onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>ProfilePage(member:m,all:all))));return Card(margin:EdgeInsets.only(left:(depth-1)*10),child:kids.isEmpty?tile:ExpansionTile(title:Text(m.name),subtitle:tile.subtitle,children:kids.map((x)=>TreeNode(m:x,map:map,all:all,path:p,depth:depth+1)).toList()));}}
 
 
-class TravelPage extends StatelessWidget {
+class TravelPage extends StatefulWidget {
  final List<Member> members;
  const TravelPage({super.key,required this.members});
- @override Widget build(BuildContext context) {
-  final records=members.where((m)=>m.travelPlace.trim().isNotEmpty||m.visitedPlaces.trim().isNotEmpty).toList();
-  return Scaffold(appBar:AppBar(title:const Text('पूर्वजों की यात्रा')),body:records.isEmpty
-   ?const Center(child:Text('अभी यात्रा का विवरण दर्ज नहीं है। सदस्य की प्रोफाइल/फॉर्म में यात्रा विवरण जोड़ें।'))
-   :ListView(padding:const EdgeInsets.all(12),children:records.map((m)=>Card(child:ListTile(leading:const Icon(Icons.travel_explore,color:Color(0xFFFF8A00)),title:Text(m.name),subtitle:Text([m.travelPlace,m.travelYear,m.travelDate,m.travelPurpose,m.visitedPlaces].where((v)=>v.trim().isNotEmpty).join(' • '))))).toList()));
- }
+ @override State<TravelPage> createState()=>_TravelPageState();
+}
+class _TravelPageState extends State<TravelPage> {
+ final List<Map<String,String>> records=[];
+ final place=TextEditingController(), person=TextEditingController(), date=TextEditingController(), year=TextEditingController(), purpose=TextEditingController(), details=TextEditingController(), from=TextEditingController(), to=TextEditingController();
+ @override void initState(){super.initState();_load();}
+ Future<void> _load()async{final p=await SharedPreferences.getInstance();final raw=p.getString('ancestor_travel_records');if(raw!=null){try{final a=(jsonDecode(raw) as List).map((e)=>Map<String,String>.from(e)).toList();if(mounted)setState(()=>records.addAll(a));}catch(_){}}}
+ Future<void> _save()async{final p=await SharedPreferences.getInstance();await p.setString('ancestor_travel_records',jsonEncode(records));}
+ @override void dispose(){for(final x in [place,person,date,year,purpose,details,from,to]){x.dispose();}super.dispose();}
+ Future<void> _add()async{await showDialog(context:context,builder:(ctx)=>AlertDialog(title:const Text('पूर्वजों की यात्रा जोड़ें'),content:SizedBox(width:480,child:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[_field(place,'यात्रा स्थान'),_field(person,'किस पूर्वज / सदस्य की यात्रा'),_field(from,'कहाँ से'),_field(to,'कहाँ तक'),_field(date,'यात्रा की तारीख'),_field(year,'वर्ष'),_field(purpose,'यात्रा का उद्देश्य'),_field(details,'यात्रा का पूरा विवरण',lines:3)]))),actions:[TextButton(onPressed:()=>Navigator.pop(ctx),child:const Text('रद्द करें')),FilledButton(onPressed:(){if(place.text.trim().isEmpty)return;setState(()=>records.add({'place':place.text.trim(),'person':person.text.trim(),'from':from.text.trim(),'to':to.text.trim(),'date':date.text.trim(),'year':year.text.trim(),'purpose':purpose.text.trim(),'details':details.text.trim()}));_save();for(final x in [place,person,date,year,purpose,details,from,to]){x.clear();}Navigator.pop(ctx);},child:const Text('यात्रा सुरक्षित करें'))]));}
+ Widget _field(TextEditingController c,String label,{int lines=1})=>Padding(padding:const EdgeInsets.only(bottom:9),child:TextField(controller:c,maxLines:lines,decoration:InputDecoration(labelText:label,border:const OutlineInputBorder())));
+ @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('पूर्वजों की यात्रा')),floatingActionButton:FloatingActionButton.extended(onPressed:_add,icon:const Icon(Icons.add),label:const Text('यात्रा जोड़ें')),body:records.isEmpty?Center(child:Column(mainAxisSize:MainAxisSize.min,children:[const Icon(Icons.travel_explore,size:48),const SizedBox(height:10),const Text('अभी यात्रा का विवरण दर्ज नहीं है।'),const SizedBox(height:12),FilledButton.icon(onPressed:_add,icon:const Icon(Icons.add),label:const Text('पहली यात्रा जोड़ें'))])):ListView(padding:const EdgeInsets.all(12),children:[...records.asMap().entries.map((e)=>Card(child:ListTile(isThreeLine:true,leading:const Icon(Icons.travel_explore,color:Color(0xFFFF8A00)),title:Text(e.value['place']??''),subtitle:Text([e.value['person'],e.value['from'].toString().isNotEmpty?'से: ${e.value['from']}':'',e.value['to'].toString().isNotEmpty?'तक: ${e.value['to']}':'',e.value['date'],e.value['year'],e.value['purpose'],e.value['details']].where((v)=>v!=null&&v.toString().trim().isNotEmpty).join(' • ')),trailing:IconButton(icon:const Icon(Icons.delete_outline),onPressed:()async{setState(()=>records.removeAt(e.key));await _save();})))) ,const SizedBox(height:80)]));
 }
 class CommunityHistoryPage extends StatelessWidget {
  const CommunityHistoryPage({super.key});
@@ -156,80 +163,37 @@ class CommunityHistoryPage extends StatelessWidget {
  ]));
 }
 
-class AccessPage extends StatelessWidget {
-  final bool registration;
-  const AccessPage({super.key, required this.registration});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(registration ? 'Family Registration' : 'Family Login')),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(22),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    registration ? Icons.app_registration : Icons.lock_outline,
-                    size: 48,
-                    color: const Color(0xFF236B52),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    registration ? 'परिवार सदस्यता अनुरोध' : 'परिवार लॉगिन',
-                    style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  if (registration)
-                    const TextField(
-                      decoration: InputDecoration(
-                        labelText: 'पूरा नाम',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  const TextField(
-                    decoration: InputDecoration(
-                      labelText: 'मोबाइल नंबर',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const TextField(
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: 'पासवर्ड',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  FilledButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'यह केवल UI प्रोटोटाइप है। सुरक्षित लॉगिन, रजिस्ट्रेशन और Admin approval Firebase जोड़ने के बाद सक्रिय होंगे।',
-                          ),
-                        ),
-                      );
-                    },
-                    child: Text(registration ? 'Request Registration' : 'Login'),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'अभी यह केवल डिजाइन है। वास्तविक अकाउंट, पासवर्ड सत्यापन, Super Admin approval और multi-phone sync सक्रिय नहीं हैं।',
-                    style: TextStyle(color: Colors.deepOrange),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+class AccessPage extends StatefulWidget {
+ final bool registration;
+ const AccessPage({super.key, required this.registration});
+ @override State<AccessPage> createState()=>_AccessPageState();
+}
+class _AccessPageState extends State<AccessPage>{
+ final name=TextEditingController(),mobile=TextEditingController(),email=TextEditingController(),relation=TextEditingController(),password=TextEditingController();
+ String role='Family Member';
+ @override void dispose(){name.dispose();mobile.dispose();email.dispose();relation.dispose();password.dispose();super.dispose();}
+ Future<void> _send(bool whatsapp)async{
+  final target=role=='Super Admin'?'Super Admin':role=='Admin'?'Admin':'Family Member';
+  final message='SANGROYA FAMILY TREE — सदस्यता / एक्सेस अनुरोध\\nनाम: ${name.text}\\nमोबाइल: ${mobile.text}\\nईमेल: ${email.text}\\nअनुरोध: ${target}\\nपरिवार से संबंध: ${relation.text}\\nकृपया मुझे परिवार ऐप का सुरक्षित आमंत्रण लिंक भेजें।';
+  final uri=whatsapp?Uri.parse('https://wa.me/?text=${Uri.encodeComponent(message)}'):Uri(scheme:'mailto',path:email.text.trim(),queryParameters:{'subject':'SANGROYA FAMILY TREE Access Request','body':message});
+  if(!await launchUrl(uri,mode:LaunchMode.externalApplication)&&mounted){ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('यह ऐप/ईमेल सेवा उपलब्ध नहीं है।')));}
+ }
+ @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:Text(widget.registration?'Family Registration':'Family Login')),body:Center(child:SingleChildScrollView(padding:const EdgeInsets.all(18),child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:520),child:Card(child:Padding(padding:const EdgeInsets.all(20),child:Column(mainAxisSize:MainAxisSize.min,children:[
+ const Text('SANGROYA FAMILY TREE में आपका स्वागत है',textAlign:TextAlign.center,style:TextStyle(fontSize:22,fontWeight:FontWeight.w900,color:Color(0xFF176B3A))),
+ const SizedBox(height:18),Icon(widget.registration?Icons.app_registration:Icons.lock_outline,size:42,color:const Color(0xFF236B52)),
+ Text(widget.registration?'परिवार सदस्यता अनुरोध':'परिवार लॉगिन',style:const TextStyle(fontSize:20,fontWeight:FontWeight.bold)),
+ if(widget.registration)...[
+ const SizedBox(height:12),TextField(controller:name,decoration:const InputDecoration(labelText:'पूरा नाम',border:OutlineInputBorder())),
+ const SizedBox(height:9),TextField(controller:mobile,keyboardType:TextInputType.phone,decoration:const InputDecoration(labelText:'मोबाइल नंबर',border:OutlineInputBorder())),
+ const SizedBox(height:9),TextField(controller:email,keyboardType:TextInputType.emailAddress,decoration:const InputDecoration(labelText:'ईमेल',border:OutlineInputBorder())),
+ const SizedBox(height:9),DropdownButtonFormField<String>(value:role,decoration:const InputDecoration(labelText:'किससे अनुरोध भेजना है',border:OutlineInputBorder()),items:const [DropdownMenuItem(value:'Super Admin',child:Text('Super Admin')),DropdownMenuItem(value:'Admin',child:Text('Admin')),DropdownMenuItem(value:'Family Member',child:Text('Family Member'))],onChanged:(v){if(v!=null)setState(()=>role=v);}),
+ const SizedBox(height:9),TextField(controller:relation,decoration:const InputDecoration(labelText:'परिवार से संबंध / गाँव',border:OutlineInputBorder())),
+ const SizedBox(height:14),Row(children:[Expanded(child:FilledButton.icon(onPressed:()=>_send(true),icon:const Icon(Icons.chat),label:const Text('WhatsApp लिंक'))),const SizedBox(width:8),Expanded(child:OutlinedButton.icon(onPressed:()=>_send(false),icon:const Icon(Icons.email),label:const Text('Email अनुरोध')))]),
+ ]else...[
+ const SizedBox(height:12),TextField(controller:mobile,decoration:const InputDecoration(labelText:'मोबाइल / ईमेल',border:OutlineInputBorder())),
+ const SizedBox(height:9),TextField(controller:password,obscureText:true,decoration:const InputDecoration(labelText:'पासवर्ड',border:OutlineInputBorder())),
+ const SizedBox(height:14),FilledButton(onPressed:()=>ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('वास्तविक लॉगिन के लिए Firebase Authentication और Super Admin account setup अभी आवश्यक है।'))),child:const Text('Login')),
+ ],
+ const SizedBox(height:12),const Text('नोट: WhatsApp/Email बटन आपके फोन में संदेश तैयार करते हैं। वास्तविक अकाउंट, OTP, पासवर्ड सत्यापन, Admin approval और सभी फोन में डेटा sync के लिए Firebase backend जोड़ना बाकी है।',style:TextStyle(color:Colors.deepOrange),textAlign:TextAlign.center)
+ ]))))));
 }
