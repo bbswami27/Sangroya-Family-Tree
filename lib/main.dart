@@ -59,8 +59,50 @@ class _FamilyHomeState extends State<FamilyHome>{
  Future<void> importExcel()async{final p=await FilePicker.platform.pickFiles(type:FileType.custom,allowedExtensions:['xlsx','xls'],withData:true);if(p==null||p.files.single.bytes==null){return;}try{final w=Excel.decodeBytes(p.files.single.bytes!);final added=<Member>[];for(final sh in w.tables.values){if(sh.rows.isEmpty)continue;final h=sh.rows.first.map((c)=>(c?.value?.toString()??'').toLowerCase()).toList();int ix(String s)=>h.indexWhere((x)=>x.contains(s));String v(List<Data?> r,int n)=>n<0||n>=r.length?'':(r[n]?.value?.toString()??'');for(final r in sh.rows.skip(1)){final n=v(r,ix('name'));if(n.trim().isEmpty){continue;}added.add(Member(name:n,gender:v(r,ix('gender')),father:v(r,ix('father')),mother:v(r,ix('mother')),village:v(r,ix('village')),occupation:v(r,ix('occupation')),spouse:v(r,ix('life partner')),spouseCity:v(r,ix('partner city')),generation:v(r,ix('generation')),dob:v(r,ix('date of birth')),dod:v(r,ix('date of death')),marriageDate:v(r,ix('marriage date')),visitedPlaces:v(r,ix('places visited')),jobType:v(r,ix('job type')),jobCountry:v(r,ix('job country')),jobDetails:v(r,ix('job details')),notes:v(r,ix('notes')),travelPlace:v(r,ix('travel place')),travelYear:v(r,ix('travel year')),travelDate:v(r,ix('travel date')),travelPurpose:v(r,ix('purpose of travel'))));}}setState(()=>members.addAll(added));await save();setState(()=>status='${added.length} records Import हुए');}catch(e){setState(()=>status='Excel error: $e');}}
  Future<void> template()async{final x=Excel.createExcel();final s=x['Family Members'];const h=['Name','Gender','Father','Mother','Village','Occupation','Life Partner','Life Partner City','Generation','Date of Birth','Date of Death','Marriage Date','Places Visited','Job Type','Job Country','Job Details','Notes','Ancestral Travel Place','Travel Year (Optional)','Travel Date (Optional)','Purpose of Travel'];s.appendRow(h.map((v)=>TextCellValue(v)).toList());s.appendRow(['नाम','पुरुष/महिला','पिता','माता','गाँव/शहर','पेशा','जीवनसाथी','शहर','1','DD-MM-YYYY','DD-MM-YYYY','DD-MM-YYYY','शहर/देश','Domestic/International','देश','कंपनी, पद, काम','अन्य','यात्रा स्थान','वैकल्पिक वर्ष','वैकल्पिक तारीख','यात्रा उद्देश्य'].map((v)=>TextCellValue(v)).toList());final b=x.encode();if(b!=null)await FilePicker.platform.saveFile(dialogTitle:'Excel Template सेव करें',fileName:'Sangroya_Family_Tree_Template.xlsx',bytes:Uint8List.fromList(b));}
  void tree()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>FamilyTreePage(members:members)));
- void showDocuments({bool closeDrawer=false}){if(closeDrawer)Navigator.pop(context);Navigator.push(context,MaterialPageRoute(builder:(_)=>Scaffold(appBar:AppBar(title:const Text('Family Documents')),body:documents.isEmpty?const Center(child:Text('अभी कोई PDF/JPEG अपलोड नहीं है')):ListView(children:documents.map((d)=>ListTile(leading:Icon(d.type=='pdf'?Icons.picture_as_pdf:Icons.image),title:Text(d.name),subtitle:Text('${(d.size/1024).toStringAsFixed(1)} KB'),trailing:Row(mainAxisSize:MainAxisSize.min,children:[IconButton(tooltip:'Download',icon:const Icon(Icons.download),onPressed:()=>downloadDocument(d)),IconButton(tooltip:'केवल Super Admin हटाएँ',icon:const Icon(Icons.delete_outline,color:Colors.red),onPressed:()=>ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Document हटाने के लिए Super Admin verification आवश्यक है। सुरक्षित Admin access अगला backend चरण है।')))]))).toList()))));}
- void showAccess(bool registration){Navigator.pop(context);Navigator.push(context,MaterialPageRoute(builder:(_)=>AccessPage(registration:registration)));}
+ void showDocuments({bool closeDrawer = false}) {
+    if (closeDrawer) Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          appBar: AppBar(title: const Text('Family Documents')),
+          body: documents.isEmpty
+              ? const Center(child: Text('अभी कोई PDF/JPEG अपलोड नहीं है'))
+              : ListView(
+                  children: documents.map((d) {
+                    return ListTile(
+                      leading: Icon(d.type == 'pdf' ? Icons.picture_as_pdf : Icons.image),
+                      title: Text(d.name),
+                      subtitle: Text('${(d.size / 1024).toStringAsFixed(1)} KB'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            tooltip: 'Download',
+                            icon: const Icon(Icons.download),
+                            onPressed: () => downloadDocument(d),
+                          ),
+                          IconButton(
+                            tooltip: 'केवल Super Admin हटाएँ',
+                            icon: const Icon(Icons.delete_outline, color: Colors.red),
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Document हटाने के लिए Super Admin verification आवश्यक है।'),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+        ),
+      ),
+    );
+  }
+  void showAccess(bool registration){Navigator.pop(context);Navigator.push(context,MaterialPageRoute(builder:(_)=>AccessPage(registration:registration)));}
  @override Widget build(BuildContext context)=>Scaffold(
  drawer:Drawer(child:ListView(padding:EdgeInsets.zero,children:[DrawerHeader(decoration:const BoxDecoration(gradient:LinearGradient(colors:[Color(0xFF0B4A22),Color(0xFF27A36B)])),child:const Column(crossAxisAlignment:CrossAxisAlignment.start,mainAxisAlignment:MainAxisAlignment.end,children:[Icon(Icons.account_tree,color:Colors.white,size:38),Text('SANGROYA FAMILY TREE',style:TextStyle(color:Colors.white,fontWeight:FontWeight.bold,fontSize:18)),Text('परिवार की डिजिटल वंशावली',style:TextStyle(color:Colors.white))])),ListTile(leading:const Icon(Icons.upload_file),title:const Text('Upload PDF / JPEG'),onTap:(){Navigator.pop(context);uploadDocument();}),ListTile(leading:const Icon(Icons.download),title:const Text('Download / Backup'),onTap:(){Navigator.pop(context);exportBackup();}),ListTile(leading:const Icon(Icons.person_add),title:const Text('Add Family Member'),onTap:(){Navigator.pop(context);edit();}),ListTile(leading:const Icon(Icons.table_view),title:const Text('Bulk Add — Excel Import'),subtitle:const Text('कई सदस्यों को एक साथ जोड़ें'),onTap:(){Navigator.pop(context);importExcel();}),ListTile(leading:const Icon(Icons.file_download),title:const Text('Excel Template डाउनलोड करें'),onTap:(){Navigator.pop(context);template();}),ListTile(leading:const Icon(Icons.account_tree),title:const Text('Family Tree'),onTap:(){Navigator.pop(context);tree();}),ListTile(leading:const Icon(Icons.folder),title:const Text('Documents / Gallery'),onTap:()=>showDocuments(closeDrawer:true)),ListTile(leading:const Icon(Icons.travel_explore),title:const Text('पूर्वजों की यात्रा'),onTap:(){Navigator.pop(context);Navigator.push(context,MaterialPageRoute(builder:(_)=>TravelPage(members:members)));}),ListTile(leading:const Icon(Icons.history_edu),title:const Text('बैरागी संप्रदाय का इतिहास'),onTap:(){Navigator.pop(context);Navigator.push(context,MaterialPageRoute(builder:(_)=>const CommunityHistoryPage()));}),const Divider(),ListTile(leading:const Icon(Icons.login),title:const Text('Family Login'),onTap:()=>showAccess(false)),ListTile(leading:const Icon(Icons.app_registration),title:const Text('Mobile Registration'),onTap:()=>showAccess(true)),const ListTile(leading:Icon(Icons.admin_panel_settings),title:Text('Admin Panel — अगला चरण'),subtitle:Text('केवल Super Admin के लिए'))])),
  appBar:AppBar(title:const Text('SANGROYA FAMILY TREE'),actions:[IconButton(onPressed:()=>showDocuments(),icon:const Icon(Icons.folder_open))]),
