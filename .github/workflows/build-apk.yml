@@ -44,11 +44,11 @@ jobs:
           app = Path("android/app/build.gradle.kts")
           ss = settings.read_text()
           if 'com.google.gms.google-services' not in ss:
-              ss = ss.replace('plugins {', 'plugins {\\n    id("com.google.gms.google-services") version "4.4.2" apply false', 1)
+              ss = ss.replace('plugins {', 'plugins {\n    id("com.google.gms.google-services") version "4.4.2" apply false', 1)
           settings.write_text(ss)
           aa = app.read_text()
           if 'id("com.google.gms.google-services")' not in aa:
-              aa = aa.replace('plugins {', 'plugins {\\n    id("com.google.gms.google-services")', 1)
+              aa = aa.replace('plugins {', 'plugins {\n    id("com.google.gms.google-services")', 1)
           app.write_text(aa)
           print("Firebase config and Google Services Gradle plugin configured")
           PY
