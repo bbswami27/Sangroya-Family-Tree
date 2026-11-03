@@ -303,16 +303,163 @@ class _MemberFormState extends State<MemberForm>{
   Widget f(String k,String label,{int lines=1})=>Padding(padding:const EdgeInsets.only(bottom:8),child:TextField(controller:c[k],maxLines:lines,decoration:InputDecoration(labelText:label,border:const OutlineInputBorder())));
  @override Widget build(BuildContext context)=>AlertDialog(title:Text(widget.member.name.isEmpty?'नया सदस्य':'Member Edit करें'),content:SizedBox(width:500,child:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[GestureDetector(onTap:choosePhoto,child:CircleAvatar(radius:42,backgroundImage:photoPath.isNotEmpty&&File(photoPath).existsSync()?FileImage(File(photoPath)):null,child:photoPath.isEmpty||!File(photoPath).existsSync()?const Icon(Icons.add_a_photo,size:30):null)),const SizedBox(height:6),TextButton.icon(onPressed:choosePhoto,icon:const Icon(Icons.camera_alt),label:const Text('फोटो जोड़ें / Camera से लें')),f('name','पूरा नाम'),DropdownButtonFormField(initialValue:gender,decoration:const InputDecoration(labelText:'लिंग'),items:const [DropdownMenuItem(value:'पुरुष',child:Text('पुरुष / Male')),DropdownMenuItem(value:'महिला',child:Text('महिला / Female')),DropdownMenuItem(value:'अन्य',child:Text('अन्य'))],onChanged:(v){if(v!=null)setState(()=>gender=v);}),const SizedBox(height:8),f('father','पिता का नाम'),f('mother','माता का नाम'),f('village','गाँव / जन्म स्थान'),f('dob','Date of Birth DD-MM-YYYY'),f('spouse','जीवनसाथी का नाम'),f('spouseCity','जीवनसाथी का शहर'),f('spouseCaste','जीवनसाथी की जाति / Caste'),f('spouseGotra','जीवनसाथी का गोत्र / Gotra'),f('marriageDate','Marriage Date DD-MM-YYYY'),f('generation','पीढ़ी संख्या'),f('occupation','पेशा / पद'),DropdownButtonFormField<String>(initialValue:job.isEmpty?null:job,decoration:const InputDecoration(labelText:'नौकरी का प्रकार'),items:const [DropdownMenuItem(value:'Government',child:Text('Government / सरकारी')),DropdownMenuItem(value:'Private',child:Text('Private / निजी')),DropdownMenuItem(value:'Not Applicable',child:Text('लागू नहीं'))],onChanged:(v){if(v!=null)setState(()=>job=v);}),if(job=='Government')DropdownButtonFormField<String>(initialValue:govtLevel.isEmpty?null:govtLevel,decoration:const InputDecoration(labelText:'सरकारी नौकरी — विभाग का स्तर'),items:const [DropdownMenuItem(value:'State',child:Text('State Government')),DropdownMenuItem(value:'Uttar Pradesh',child:Text('Uttar Pradesh Government')),DropdownMenuItem(value:'Central',child:Text('Central Government'))],onChanged:(v){if(v!=null)setState(()=>govtLevel=v);}),f('jobCompany','Company / सरकारी विभाग का नाम'),f('jobTitle','Job Title / पदनाम'),if(job=='Private')f('jobCountry','किस देश में नौकरी?'),f('jobDetails','Job Details — शहर, अवधि आदि',lines:2),f('visitedPlaces','कहाँ-कहाँ Visit किया',lines:2),f('visitYears','Visit के वर्ष (जैसे 1998, 2005, 2022)',lines:2),f('travelPlace','पूर्वजों की यात्रा — स्थान'),f('travelYear','यात्रा वर्ष (वैकल्पिक)'),f('travelDate','यात्रा तारीख (वैकल्पिक)'),f('travelPurpose','यात्रा का उद्देश्य',lines:2),f('notes','अन्य जानकारी',lines:2),f('dod','Date of Death DD-MM-YYYY')]))),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('Cancel')),FilledButton(onPressed:(){if(c['name']!.text.trim().isEmpty)return;String v(String k)=>c[k]!.text.trim();Navigator.pop(context,Member(name:v('name'),gender:gender,father:v('father'),mother:v('mother'),village:v('village'),occupation:v('occupation'),spouse:v('spouse'),spouseCity:v('spouseCity'),spouseCaste:v('spouseCaste'),spouseGotra:v('spouseGotra'),generation:v('generation'),dob:v('dob'),dod:v('dod'),marriageDate:v('marriageDate'),visitedPlaces:v('visitedPlaces'),visitYears:v('visitYears'),jobType:job,govtLevel:govtLevel,jobCompany:v('jobCompany'),jobTitle:v('jobTitle'),jobCountry:v('jobCountry'),jobDetails:v('jobDetails'),photoPath:photoPath,notes:v('notes'),travelPlace:v('travelPlace'),travelYear:v('travelYear'),travelDate:v('travelDate'),travelPurpose:v('travelPurpose')));},child:const Text('Save'))]);
 }
-class ProfilePage extends StatelessWidget{
- final Member member;final List<Member> all;const ProfilePage({super.key,required this.member,required this.all});
- List<Member> named(String n)=>all.where((m)=>m.name.toLowerCase().trim()==n.toLowerCase().trim()).toList();
- List<Member> kids(String n)=>all.where((m)=>m.father.toLowerCase().trim()==n.toLowerCase().trim()).toList();
- Widget row(String k,String v)=>v.isEmpty?const SizedBox.shrink():ListTile(title:Text(k),subtitle:Text(v));
- @override Widget build(BuildContext context){final f=named(member.father);final g=f.length==1?named(f.first.father):<Member>[];final sons=kids(member.name);final grand=sons.expand((m)=>kids(m.name)).toList();return Scaffold(appBar:AppBar(title:Text(member.name)),body:ListView(padding:const EdgeInsets.all(12),children:[if(member.photoPath.isNotEmpty&&File(member.photoPath).existsSync())Center(child:CircleAvatar(radius:58,backgroundImage:FileImage(File(member.photoPath)))),Card(child:Column(children:[row('लिंग',member.gender),row('जन्म तिथि',member.dob),row('मृत्यु तिथि',member.dod),row('जन्म स्थान',member.village),row('पिता',member.father),row('माता',member.mother),row('दादा',g.length==1?g.first.name:'रिकॉर्ड नहीं मिला') ])),Card(child:Column(children:[row('जीवनसाथी',member.spouse),row('जीवनसाथी का शहर',member.spouseCity),row('जीवनसाथी की जाति',member.spouseCaste),row('जीवनसाथी का गोत्र',member.spouseGotra),row('विवाह तारीख',member.marriageDate)])),Card(child:Column(children:[row('पेशा',member.occupation),row('Job Type',member.jobType),row('देश',member.jobCountry),row('Job Type',member.jobType),row('Government Level',member.govtLevel),row('Company / Department',member.jobCompany),row('Job Title',member.jobTitle),row('Job Details',member.jobDetails),row('Visited Places',member.visitedPlaces),row('Visit Years',member.visitYears)])),Card(child:Column(children:[const ListTile(title:Text('तीन पीढ़ियों का विवरण')),row('पुत्र / पुत्रियाँ',sons.map((m)=>m.name).join(', ')),row('पोते / पोतियाँ',grand.map((m)=>m.name).join(', '))]))]));}
-}
-class FamilyTreePage extends StatelessWidget{final List<Member> members;const FamilyTreePage({super.key,required this.members});@override Widget build(BuildContext context){final counts=<String,int>{};for(final m in members){final k=m.name.toLowerCase().trim();counts[k]=(counts[k]??0)+1;}final map=<String,List<Member>>{};for(final m in members){final k=m.father.toLowerCase().trim();if(k.isNotEmpty&&counts[k]==1)map.putIfAbsent(k,()=>[]).add(m);}final roots=members.where((m){final k=m.father.toLowerCase().trim();return k.isEmpty||counts[k]!=1;}).toList();return Scaffold(appBar:AppBar(title:const Text('Family Tree')),body:ListView(padding:const EdgeInsets.all(12),children:[const Text('किसी भी सदस्य पर क्लिक करके पिता, दादा, बच्चों और पोते-पोतियों का विवरण देखें।'),...roots.map((m)=>TreeNode(m:m,map:map,all:members,path:<String>{},depth:1))]));}}
-class TreeNode extends StatelessWidget{final Member m;final Map<String,List<Member>> map;final List<Member> all;final Set<String> path;final int depth;const TreeNode({super.key,required this.m,required this.map,required this.all,required this.path,required this.depth});@override Widget build(BuildContext context){final k=m.name.toLowerCase().trim();final p={...path,k};final kids=(map[k]??[]).where((x)=>!p.contains(x.name.toLowerCase().trim())).toList();final tile=ListTile(title:Text(m.name),subtitle:Text([m.gender,m.village,m.spouse].where((x)=>x.isNotEmpty).join(' • ')),onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>ProfilePage(member:m,all:all))));return Card(margin:EdgeInsets.only(left:(depth-1)*10),child:kids.isEmpty?tile:ExpansionTile(title:Text(m.name),subtitle:tile.subtitle,children:kids.map((x)=>TreeNode(m:x,map:map,all:all,path:p,depth:depth+1)).toList()));}}
+class ProfilePage extends StatelessWidget {
+ final Member member;
+ final List<Member> all;
+ const ProfilePage({super.key, required this.member, required this.all});
 
+ List<Member> named(String n) => all.where((m) => m.name.trim().toLowerCase() == n.trim().toLowerCase()).toList();
+ List<Member> childrenOf(String n) => all.where((m) => m.father.trim().toLowerCase() == n.trim().toLowerCase()).toList();
+ Widget row(String k, String v) => v.isEmpty ? const SizedBox.shrink() : ListTile(title: Text(k), subtitle: Text(v));
+
+ List<Member> ancestors() {
+   final result = <Member>[];
+   var current = member;
+   final seen = <String>{member.name.trim().toLowerCase()};
+   for (var i = 0; i < 18 && current.father.trim().isNotEmpty; i++) {
+     final matches = named(current.father);
+     if (matches.length != 1) break;
+     final next = matches.first;
+     final key = next.name.trim().toLowerCase();
+     if (!seen.add(key)) break;
+     result.add(next);
+     current = next;
+   }
+   return result;
+ }
+
+ List<Member> descendants() {
+   final result = <Member>[];
+   final queue = <Member>[member];
+   final seen = <String>{member.name.trim().toLowerCase()};
+   while (queue.isNotEmpty && result.length < 1000) {
+     final parent = queue.removeAt(0);
+     for (final child in childrenOf(parent.name)) {
+       final key = child.name.trim().toLowerCase();
+       if (key.isNotEmpty && seen.add(key)) {
+         result.add(child);
+         queue.add(child);
+       }
+     }
+   }
+   return result;
+ }
+
+ @override Widget build(BuildContext context) {
+   final up = ancestors();
+   final down = descendants();
+   return Scaffold(
+     appBar: AppBar(title: Text(member.name)),
+     body: ListView(padding: const EdgeInsets.all(12), children: [
+       if (member.photoPath.isNotEmpty && File(member.photoPath).existsSync())
+         Center(child: CircleAvatar(radius: 58, backgroundImage: FileImage(File(member.photoPath)))),
+       Card(child: Column(children: [
+         row('पीढ़ी संख्या / Generation', member.generation),
+         row('लिंग', member.gender), row('जन्म तिथि', member.dob),
+         row('मृत्यु तिथि', member.dod), row('जन्म स्थान', member.village),
+         row('पिता', member.father), row('माता', member.mother),
+       ])),
+       Card(child: Column(children: [
+         const ListTile(title: Text('पूर्वज / पहले की पीढ़ियाँ')),
+         if (up.isEmpty) const ListTile(subtitle: Text('पिता/पूर्वज का मिलान नहीं मिला। नाम या पिता का नाम जाँचें।')),
+         ...up.map((m) => ListTile(
+           leading: const Icon(Icons.arrow_upward),
+           title: Text(m.name),
+           subtitle: Text('पीढ़ी: ${m.generation.isEmpty ? 'दर्ज नहीं' : m.generation} • पिता: ${m.father.isEmpty ? 'दर्ज नहीं' : m.father}'),
+           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProfilePage(member: m, all: all))),
+         )),
+       ])),
+       Card(child: Column(children: [
+         row('जीवनसाथी', member.spouse), row('जीवनसाथी का शहर', member.spouseCity),
+         row('जीवनसाथी की जाति', member.spouseCaste), row('जीवनसाथी का गोत्र', member.spouseGotra),
+         row('विवाह तारीख', member.marriageDate),
+       ])),
+       Card(child: Column(children: [
+         row('पेशा', member.occupation), row('Job Type', member.jobType),
+         row('देश', member.jobCountry), row('Government Level', member.govtLevel),
+         row('Company / Department', member.jobCompany), row('Job Title', member.jobTitle),
+         row('Job Details', member.jobDetails), row('Visited Places', member.visitedPlaces),
+         row('Visit Years', member.visitYears),
+       ])),
+       Card(child: Column(children: [
+         ListTile(title: Text('बाद की पीढ़ियाँ / वंशज (${down.length})')),
+         if (down.isEmpty) const ListTile(subtitle: Text('इस सदस्य के नाम से पिता का रिकॉर्ड मिलाकर कोई संतान नहीं मिली।')),
+         ...down.map((m) => ListTile(
+           leading: const Icon(Icons.arrow_downward),
+           title: Text(m.name),
+           subtitle: Text('पीढ़ी: ${m.generation.isEmpty ? 'दर्ज नहीं' : m.generation} • पिता: ${m.father}'),
+           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProfilePage(member: m, all: all))),
+         )),
+       ])),
+     ]),
+   );
+ }
+}
+
+class FamilyTreePage extends StatelessWidget {
+ final List<Member> members;
+ const FamilyTreePage({super.key, required this.members});
+ @override Widget build(BuildContext context) {
+   final counts = <String, int>{};
+   for (final m in members) {
+     final k = m.name.trim().toLowerCase();
+     counts[k] = (counts[k] ?? 0) + 1;
+   }
+   final map = <String, List<Member>>{};
+   for (final m in members) {
+     final k = m.father.trim().toLowerCase();
+     if (k.isNotEmpty && counts[k] == 1) map.putIfAbsent(k, () => []).add(m);
+   }
+   final roots = members.where((m) {
+     final k = m.father.trim().toLowerCase();
+     return k.isEmpty || counts[k] != 1;
+   }).toList()
+     ..sort((a, b) {
+       final ai = int.tryParse(a.generation) ?? 999;
+       final bi = int.tryParse(b.generation) ?? 999;
+       return ai.compareTo(bi);
+     });
+   return Scaffold(
+     appBar: AppBar(title: const Text('Family Tree')),
+     body: ListView(padding: const EdgeInsets.all(12), children: [
+       const Text('सदस्य के नाम पर क्लिक करके उससे जुड़ी उपलब्ध पूर्वज और अगली पीढ़ियाँ देखें। पिता का नाम सही और अद्वितीय होना आवश्यक है।'),
+       ...roots.map((m) => TreeNode(m: m, map: map, all: members, path: <String>{}, depth: 1)),
+     ]),
+   );
+ }
+}
+
+class TreeNode extends StatelessWidget {
+ final Member m;
+ final Map<String, List<Member>> map;
+ final List<Member> all;
+ final Set<String> path;
+ final int depth;
+ const TreeNode({super.key, required this.m, required this.map, required this.all, required this.path, required this.depth});
+ @override Widget build(BuildContext context) {
+   final k = m.name.trim().toLowerCase();
+   final p = {...path, k};
+   final kids = (map[k] ?? []).where((x) => !p.contains(x.name.trim().toLowerCase())).toList()
+     ..sort((a, b) => (int.tryParse(a.generation) ?? 999).compareTo(int.tryParse(b.generation) ?? 999));
+   final subtitle = [
+     if (m.generation.isNotEmpty) 'पीढ़ी ${m.generation}',
+     m.gender, m.village, m.spouse,
+   ].where((x) => x.isNotEmpty).join(' • ');
+   final tile = ListTile(
+     title: Text(m.name),
+     subtitle: Text(subtitle.isEmpty ? 'पीढ़ी संख्या दर्ज नहीं' : subtitle),
+     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProfilePage(member: m, all: all))),
+   );
+   return Card(
+     margin: EdgeInsets.only(left: (depth - 1) * 10),
+     child: kids.isEmpty ? tile : ExpansionTile(
+       title: Text(m.name),
+       subtitle: Text(subtitle.isEmpty ? 'पीढ़ी संख्या दर्ज नहीं' : subtitle),
+       children: kids.map((x) => TreeNode(m: x, map: map, all: all, path: p, depth: depth + 1)).toList(),
+     ),
+   );
+ }
+}
 
 class TravelPage extends StatefulWidget {
  final List<Member> members;
