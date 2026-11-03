@@ -340,7 +340,7 @@ class _MemberFormState extends State<MemberForm>{
  Future<void> pickPhoto(ImageSource source) async { final x=await ImagePicker().pickImage(source:source,imageQuality:85,maxWidth:1200); if(x==null)return; final dir=await getApplicationDocumentsDirectory(); final folder=Directory('${dir.path}/member_photos'); await folder.create(recursive:true); final dest=File('${folder.path}/${DateTime.now().millisecondsSinceEpoch}_${x.name.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'),'_')}'); await File(x.path).copy(dest.path); if(mounted)setState(()=>photoPath=dest.path); }
   Future<void> choosePhoto() async { await showModalBottomSheet(context:context,builder:(ctx)=>SafeArea(child:Wrap(children:[ListTile(leading:const Icon(Icons.photo_library),title:const Text('Gallery से फोटो चुनें'),onTap:(){Navigator.pop(ctx);pickPhoto(ImageSource.gallery);}),ListTile(leading:const Icon(Icons.camera_alt),title:const Text('Camera से फोटो लें'),onTap:(){Navigator.pop(ctx);pickPhoto(ImageSource.camera);})]))); }
   Widget f(String k,String label,{int lines=1})=>Padding(padding:const EdgeInsets.only(bottom:8),child:TextField(controller:c[k],maxLines:lines,decoration:InputDecoration(labelText:label,border:const OutlineInputBorder())));
- @override Widget build(BuildContext context)=>AlertDialog(title:Text(widget.member.name.isEmpty?'नया सदस्य':'Member Edit करें'),content:SizedBox(width:500,child:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[GestureDetector(onTap:choosePhoto,child:CircleAvatar(radius:42,backgroundImage:photoPath.isNotEmpty&&File(photoPath).existsSync()?FileImage(File(photoPath)):null,child:photoPath.isEmpty||!File(photoPath).existsSync()?const Icon(Icons.add_a_photo,size:30):null)),const SizedBox(height:6),TextButton.icon(onPressed:choosePhoto,icon:const Icon(Icons.camera_alt),label:const Text('फोटो जोड़ें / Camera से लें')),f('name','पूरा नाम'),DropdownButtonFormField(initialValue:gender,decoration:const InputDecoration(labelText:'लिंग'),items:const [DropdownMenuItem(value:'पुरुष',child:Text('पुरुष / Male')),DropdownMenuItem(value:'महिला',child:Text('महिला / Female')),DropdownMenuItem(value:'अन्य',child:Text('अन्य'))],onChanged:(v){if(v!=null)setState(()=>gender=v);}),const SizedBox(height:8),f('father','पिता का नाम'),f('mother','माता का नाम'),f('village','गाँव / जन्म स्थान'),f('dob','Date of Birth DD-MM-YYYY'),f('spouse','जीवनसाथी का नाम'),f('spouseCity','जीवनसाथी का शहर'),f('spouseCaste','जीवनसाथी की जाति / Caste'),f('spouseGotra','जीवनसाथी का गोत्र / Gotra'),f('marriageDate','Marriage Date DD-MM-YYYY'),f('generation','पीढ़ी संख्या'),f('occupation','पेशा / पद'),DropdownButtonFormField<String>(initialValue:job.isEmpty?null:job,decoration:const InputDecoration(labelText:'नौकरी का प्रकार'),items:const [DropdownMenuItem(value:'Government',child:Text('Government / सरकारी')),DropdownMenuItem(value:'Private',child:Text('Private / निजी')),DropdownMenuItem(value:'Not Applicable',child:Text('लागू नहीं'))],onChanged:(v){if(v!=null)setState(()=>job=v);}),if(job=='Government')DropdownButtonFormField<String>(initialValue:govtLevel.isEmpty?null:govtLevel,decoration:const InputDecoration(labelText:'सरकारी नौकरी — विभाग का स्तर'),items:const [DropdownMenuItem(value:'State',child:Text('State Government')),DropdownMenuItem(value:'Uttar Pradesh',child:Text('Uttar Pradesh Government')),DropdownMenuItem(value:'Central',child:Text('Central Government'))],onChanged:(v){if(v!=null)setState(()=>govtLevel=v);}),f('jobCompany','Company / सरकारी विभाग का नाम'),f('jobTitle','Job Title / पदनाम'),if(job=='Private')f('jobCountry','किस देश में नौकरी?'),f('jobDetails','Job Details — शहर, अवधि आदि',lines:2),f('visitedPlaces','कहाँ-कहाँ Visit किया',lines:2),f('visitYears','Visit के वर्ष (जैसे 1998, 2005, 2022)',lines:2),f('travelPlace','पूर्वजों की यात्रा — स्थान'),f('travelYear','यात्रा वर्ष (वैकल्पिक)'),f('travelDate','यात्रा तारीख (वैकल्पिक)'),f('travelPurpose','यात्रा का उद्देश्य',lines:2),f('notes','अन्य जानकारी',lines:2),f('dod','Date of Death DD-MM-YYYY')]))),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('Cancel')),FilledButton(onPressed:(){if(c['name']!.text.trim().isEmpty)return;String v(String k)=>c[k]!.text.trim();Navigator.pop(context,Member(name:v('name'),gender:gender,father:v('father'),mother:v('mother'),village:v('village'),occupation:v('occupation'),spouse:v('spouse'),spouseCity:v('spouseCity'),spouseCaste:v('spouseCaste'),spouseGotra:v('spouseGotra'),generation:v('generation'),dob:v('dob'),dod:v('dod'),marriageDate:v('marriageDate'),visitedPlaces:v('visitedPlaces'),visitYears:v('visitYears'),jobType:job,govtLevel:govtLevel,jobCompany:v('jobCompany'),jobTitle:v('jobTitle'),jobCountry:v('jobCountry'),jobDetails:v('jobDetails'),photoPath:photoPath,notes:v('notes'),travelPlace:v('travelPlace'),travelYear:v('travelYear'),travelDate:v('travelDate'),travelPurpose:v('travelPurpose')));},child:const Text('Save'))]);
+ @override Widget build(BuildContext context)=>AlertDialog(title:Text(widget.member.name.isEmpty?'नया सदस्य':'Member Edit करें'),content:SizedBox(width:500,child:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[GestureDetector(onTap:choosePhoto,child:CircleAvatar(radius:42,backgroundImage:photoPath.isNotEmpty&&File(photoPath).existsSync()?FileImage(File(photoPath)):null,child:photoPath.isEmpty||!File(photoPath).existsSync()?const Icon(Icons.add_a_photo,size:30):null)),const SizedBox(height:6),TextButton.icon(onPressed:choosePhoto,icon:const Icon(Icons.camera_alt),label:const Text('फोटो जोड़ें / Camera से लें')),f('name','पूरा नाम'),DropdownButtonFormField(initialValue:gender,decoration:const InputDecoration(labelText:'लिंग'),items:const [DropdownMenuItem(value:'पुरुष',child:Text('पुरुष / Male')),DropdownMenuItem(value:'महिला',child:Text('महिला / Female')),DropdownMenuItem(value:'अन्य',child:Text('अन्य'))],onChanged:(v){if(v!=null)setState(()=>gender=v);}),const SizedBox(height:8),f('father','पिता का नाम'),f('mother','माता का नाम'),f('village','गाँव / जन्म स्थान'),f('dob','Date of Birth DD-MM-YYYY'),f('spouse','जीवनसाथी का नाम'),f('spouseCity','जीवनसाथी का शहर'),f('spouseCaste','जीवनसाथी की जाति / Caste'),f('spouseGotra','जीवनसाथी का गोत्र / Gotra'),f('marriageDate','Marriage Date DD-MM-YYYY'),f('generation','पीढ़ी संख्या'),f('occupation','पेशा / पद'),DropdownButtonFormField<String>(initialValue:job.isEmpty?null:job,decoration:const InputDecoration(labelText:'नौकरी का प्रकार'),items:const [DropdownMenuItem(value:'Government',child:Text('Government / सरकारी')),DropdownMenuItem(value:'Private',child:Text('Private / निजी')),DropdownMenuItem(value:'Not Applicable',child:Text('लागू नहीं'))],onChanged:(v){if(v!=null)setState(()=>job=v);}),if(job=='Government')DropdownButtonFormField<String>(initialValue:govtLevel.isEmpty?null:govtLevel,decoration:const InputDecoration(labelText:'सरकारी नौकरी — विभाग का स्तर'),items:const [DropdownMenuItem(value:'State',child:Text('State Government')),DropdownMenuItem(value:'Uttar Pradesh',child:Text('Uttar Pradesh Government')),DropdownMenuItem(value:'Central',child:Text('Central Government'))],onChanged:(v){if(v!=null)setState(()=>govtLevel=v);}),f('jobCompany','Company / सरकारी विभाग का नाम'),f('jobTitle','Job Title / पदनाम'),if(job=='Private')f('jobCountry','किस देश में नौकरी?'),f('jobDetails','Job Details — शहर, अवधि आदि',lines:2),f('visitedPlaces','कहाँ-कहाँ Visit किया',lines:2),f('visitYears','Visit के वर्ष (जैसे 1998, 2005, 2022)',lines:2),f('travelPlace','पूर्वजों की यात्रा — स्थान'),f('travelYear','यात्रा वर्ष (वैकल्पिक)'),f('travelDate','यात्रा तारीख (वैकल्पिक)'),f('travelPurpose','यात्रा का उद्देश्य',lines:2),f('notes','अन्य जानकारी',lines:2),f('dod','Date of Death DD-MM-YYYY')]))),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('Cancel')),FilledButton(onPressed:(){if(c['name']!.text.trim().isEmpty)return;String v(String k)=>c[k]!.text.trim();Navigator.pop(context,Member(memberId:widget.member.memberId,fatherId:widget.member.fatherId,motherId:widget.member.motherId,spouseId:widget.member.spouseId,name:v('name'),gender:gender,father:v('father'),mother:v('mother'),village:v('village'),occupation:v('occupation'),spouse:v('spouse'),spouseCity:v('spouseCity'),spouseCaste:v('spouseCaste'),spouseGotra:v('spouseGotra'),generation:v('generation'),dob:v('dob'),dod:v('dod'),marriageDate:v('marriageDate'),visitedPlaces:v('visitedPlaces'),visitYears:v('visitYears'),jobType:job,govtLevel:govtLevel,jobCompany:v('jobCompany'),jobTitle:v('jobTitle'),jobCountry:v('jobCountry'),jobDetails:v('jobDetails'),photoPath:photoPath,notes:v('notes'),travelPlace:v('travelPlace'),travelYear:v('travelYear'),travelDate:v('travelDate'),travelPurpose:v('travelPurpose')));},child:const Text('Save'))]);
 }
 class ProfilePage extends StatelessWidget {
  final Member member;
@@ -354,36 +354,31 @@ class ProfilePage extends StatelessWidget {
    norm(m.village), norm(m.dob), norm(m.spouse),
  ].join('|');
 
- List<Member> named(String n) => all.where((m) => norm(m.name) == norm(n)).toList();
-
  List<Member> parentMatches(Member child) {
-   final matches = named(child.father);
-   if (matches.length <= 1) return matches;
-   final childGeneration = gen(child);
-   if (childGeneration != null) {
-     final adjacent = matches.where((m) => gen(m) == childGeneration - 1).toList();
-     if (adjacent.length == 1) return adjacent;
+   if(child.fatherId.isNotEmpty){
+     final byId=all.where((m)=>m.memberId==child.fatherId).toList();
+     if(byId.length==1)return byId;
    }
+   final matches=all.where((m)=>m.name.trim().toLowerCase()==child.father.trim().toLowerCase()).toList();
+   if(matches.length<=1)return matches;
+   final g=int.tryParse(child.generation);
+   if(g!=null){final adjacent=matches.where((m)=>int.tryParse(m.generation)==g-1).toList();if(adjacent.length==1)return adjacent;}
    return const [];
  }
-
  List<Member> childrenOf(Member parent) {
-   final matches = all.where((m) => norm(m.father) == norm(parent.name)).toList();
-   if (matches.length <= 1) return matches;
-   final parentGeneration = gen(parent);
-   if (parentGeneration != null) {
-     final adjacent = matches.where((m) => gen(m) == parentGeneration + 1).toList();
-     if (adjacent.isNotEmpty) return adjacent;
-   }
+   final byId=all.where((m)=>m.fatherId==parent.memberId && parent.memberId.isNotEmpty).toList();
+   if(byId.isNotEmpty)return byId;
+   final matches=all.where((m)=>m.father.trim().toLowerCase()==parent.name.trim().toLowerCase()).toList();
+   final g=int.tryParse(parent.generation);
+   if(g!=null){final adjacent=matches.where((m)=>int.tryParse(m.generation)==g+1).toList();if(adjacent.isNotEmpty)return adjacent;}
    return matches;
  }
-
  Widget row(String k, String v) => v.trim().isEmpty ? const SizedBox.shrink() : ListTile(title: Text(k), subtitle: Text(v));
 
  List<Member> ancestors() {
    final result = <Member>[];
    var current = member;
-   final seen = <String>{identity(member)};
+   final seen = <String>{member.memberId.isNotEmpty ? member.memberId : identity(member)};
    for (var i = 0; i < 18 && current.father.trim().isNotEmpty; i++) {
      final matches = parentMatches(current);
      if (matches.length != 1) break;
@@ -398,11 +393,11 @@ class ProfilePage extends StatelessWidget {
  List<Member> descendants() {
    final result = <Member>[];
    final queue = <Member>[member];
-   final seen = <String>{identity(member)};
+   final seen = <String>{member.memberId.isNotEmpty ? member.memberId : identity(member)};
    while (queue.isNotEmpty && result.length < 2000) {
      final parent = queue.removeAt(0);
      for (final child in childrenOf(parent)) {
-       final key = identity(child);
+       final key = child.memberId.isNotEmpty ? child.memberId : identity(child);
        if (key != identity(parent) && seen.add(key)) {
          result.add(child);
          queue.add(child);
@@ -426,6 +421,7 @@ class ProfilePage extends StatelessWidget {
            if (member.photoPath.isNotEmpty && File(member.photoPath).existsSync())
              Center(child: CircleAvatar(radius: 58, backgroundImage: FileImage(File(member.photoPath)))),
            Card(child: Column(children: [
+             row('Member ID', member.memberId),
              row('पीढ़ी संख्या / Generation', member.generation),
              row('लिंग', member.gender), row('जन्म तिथि', member.dob),
              row('मृत्यु तिथि', member.dod), row('जन्म स्थान', member.village),
@@ -481,11 +477,11 @@ class FamilyTreePage extends StatelessWidget {
    }
    final map = <String, List<Member>>{};
    for (final m in members) {
-     final k = m.father.trim().toLowerCase();
+     final k = m.fatherId.isNotEmpty ? m.fatherId : m.father.trim().toLowerCase();
      if (k.isNotEmpty && counts[k] == 1) map.putIfAbsent(k, () => []).add(m);
    }
    final roots = members.where((m) {
-     final k = m.father.trim().toLowerCase();
+     final k = m.fatherId.isNotEmpty ? m.fatherId : m.father.trim().toLowerCase();
      return k.isEmpty || counts[k] != 1;
    }).toList()
      ..sort((a, b) {
@@ -511,11 +507,12 @@ class TreeNode extends StatelessWidget {
  final int depth;
  const TreeNode({super.key, required this.m, required this.map, required this.all, required this.path, required this.depth});
  @override Widget build(BuildContext context) {
-   final k = m.name.trim().toLowerCase();
+   final k = m.memberId.isNotEmpty ? m.memberId : m.name.trim().toLowerCase();
    final p = {...path, k};
-   final kids = (map[k] ?? []).where((x) => !p.contains(x.name.trim().toLowerCase())).toList()
+   final kids = (map[k] ?? []).where((x) => !p.contains(x.memberId.isNotEmpty ? x.memberId : x.name.trim().toLowerCase())).toList()
      ..sort((a, b) => (int.tryParse(a.generation) ?? 999).compareTo(int.tryParse(b.generation) ?? 999));
    final subtitle = [
+     if (m.memberId.isNotEmpty) 'ID: ${m.memberId}',
      if (m.generation.isNotEmpty) 'पीढ़ी ${m.generation}',
      m.gender, m.village, m.spouse,
    ].where((x) => x.isNotEmpty).join(' • ');
