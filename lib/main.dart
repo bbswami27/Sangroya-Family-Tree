@@ -209,7 +209,7 @@ class _AccessPageState extends State<AccessPage>{
  @override void dispose(){name.dispose();mobile.dispose();email.dispose();relation.dispose();password.dispose();super.dispose();}
  Future<void> _send(bool whatsapp)async{
   final target=role=='Super Admin'?'Super Admin':role=='Admin'?'Admin':'Family Member';
-  final message='SANGROYA FAMILY TREE — सदस्यता / एक्सेस अनुरोध\\nनाम: name.text\\nमोबाइल: mobile.text\\nईमेल: email.text\\nअनुरोध: target\\nपरिवार से संबंध: relation.text\\nकृपया मुझे परिवार ऐप का सुरक्षित आमंत्रण लिंक भेजें।';
+  final message='SANGROYA FAMILY TREE — सदस्यता / एक्सेस अनुरोध\nनाम: ${name.text.trim()}\nमोबाइल: ${mobile.text.trim()}\nईमेल: ${email.text.trim()}\nअनुरोध: $target\nपरिवार से संबंध: ${relation.text.trim()}\nकृपया मुझे परिवार ऐप का सुरक्षित आमंत्रण लिंक भेजें।';
   final uri=whatsapp?Uri.parse('https://wa.me/?text=${Uri.encodeComponent(message)}'):Uri(scheme:'mailto',path:email.text.trim(),queryParameters:{'subject':'SANGROYA FAMILY TREE Access Request','body':message});
   if(!await launchUrl(uri,mode:LaunchMode.externalApplication)&&mounted){ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('यह ऐप/ईमेल सेवा उपलब्ध नहीं है।')));}
  }
