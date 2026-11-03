@@ -32,6 +32,26 @@ jobs:
           "$SDKMANAGER" --install "platforms;android-36" "build-tools;36.0.0"
       - name: Generate Android platform files
         run: flutter create --project-name sangroya_family_tree --platforms android --org com.sangroya.familytree .
+      - name: Configure Firebase Android app
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p android/app
+          cp firebase/google-services.json android/app/google-services.json
+          python3 - <<'PY'
+          from pathlib import Path
+          settings = Path("android/settings.gradle.kts")
+          app = Path("android/app/build.gradle.kts")
+          ss = settings.read_text()
+          if 'com.google.gms.google-services' not in ss:
+              ss = ss.replace('plugins {', 'plugins {\\n    id("com.google.gms.google-services") version "4.4.2" apply false', 1)
+          settings.write_text(ss)
+          aa = app.read_text()
+          if 'id("com.google.gms.google-services")' not in aa:
+              aa = aa.replace('plugins {', 'plugins {\\n    id("com.google.gms.google-services")', 1)
+          app.write_text(aa)
+          print("Firebase config and Google Services Gradle plugin configured")
+          PY
       - name: Prepare signing key
         shell: bash
         run: |
