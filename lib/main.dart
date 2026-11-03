@@ -111,7 +111,7 @@ class CommunityHistoryPage extends StatelessWidget {
  const Text('इस अनुभाग में परिवार द्वारा सत्यापित जानकारी, मौखिक इतिहास, पुराने दस्तावेज़, स्थान, तिथियाँ और संदर्भ क्रमशः जोड़े जा सकते हैं। अपुष्ट जानकारी को “सत्यापन बाकी” के रूप में रखें।'),
  const SizedBox(height:12),
  const Text('नोट: यह सामान्य परिचय है, आपके परिवार/शाखा का प्रमाणित इतिहास नहीं। विशिष्ट वंश-परंपरा जोड़ने से पहले विश्वसनीय स्रोतों से पुष्टि करें।',style:TextStyle(color:Color(0xFF9A4D00))),
- ]);
+ ]));
 }
 
 class AccessPage extends StatelessWidget {
