@@ -47,22 +47,60 @@ class SangroyaApp extends StatelessWidget {
 ),home:const FamilyHome());
 }
 class Member {
+ final String memberId,fatherId,motherId,spouseId;
  final String name,gender,father,mother,village,occupation,spouse,spouseCity,spouseCaste,spouseGotra,generation,dob,dod,marriageDate,visitedPlaces,visitYears,jobType,govtLevel,jobCompany,jobTitle,jobCountry,jobDetails,photoPath,notes,travelPlace,travelYear,travelDate,travelPurpose;
- const Member({this.name='',this.gender='',this.father='',this.mother='',this.village='',this.occupation='',this.spouse='',this.spouseCity='',this.spouseCaste='',this.spouseGotra='',this.generation='',this.dob='',this.dod='',this.marriageDate='',this.visitedPlaces='',this.visitYears='',this.jobType='',this.govtLevel='',this.jobCompany='',this.jobTitle='',this.jobCountry='',this.jobDetails='',this.photoPath='',this.notes='',this.travelPlace='',this.travelYear='',this.travelDate='',this.travelPurpose=''});
- Map<String,dynamic> toJson()=>{'name':name,'gender':gender,'father':father,'mother':mother,'village':village,'occupation':occupation,'spouse':spouse,'spouseCity':spouseCity,'spouseCaste':spouseCaste,'spouseGotra':spouseGotra,'generation':generation,'dob':dob,'dod':dod,'marriageDate':marriageDate,'visitedPlaces':visitedPlaces,'visitYears':visitYears,'jobType':jobType,'govtLevel':govtLevel,'jobCompany':jobCompany,'jobTitle':jobTitle,'jobCountry':jobCountry,'jobDetails':jobDetails,'photoPath':photoPath,'notes':notes,'travelPlace':travelPlace,'travelYear':travelYear,'travelDate':travelDate,'travelPurpose':travelPurpose};
- factory Member.fromJson(Map<String,dynamic> j)=>Member(name:j['name']??'',gender:j['gender']??'',father:j['father']??'',mother:j['mother']??'',village:j['village']??'',occupation:j['occupation']??'',spouse:j['spouse']??'',spouseCity:j['spouseCity']??'',spouseCaste:j['spouseCaste']??'',spouseGotra:j['spouseGotra']??'',generation:j['generation']??'',dob:j['dob']??'',dod:j['dod']??'',marriageDate:j['marriageDate']??'',visitedPlaces:j['visitedPlaces']??'',visitYears:j['visitYears']??'',jobType:j['jobType']??'',govtLevel:j['govtLevel']??'',jobCompany:j['jobCompany']??'',jobTitle:j['jobTitle']??'',jobCountry:j['jobCountry']??'',jobDetails:j['jobDetails']??'',photoPath:j['photoPath']??'',notes:j['notes']??'',travelPlace:j['travelPlace']??'',travelYear:j['travelYear']??'',travelDate:j['travelDate']??'',travelPurpose:j['travelPurpose']??'');
+ const Member({this.memberId='',this.fatherId='',this.motherId='',this.spouseId='',this.name='',this.gender='',this.father='',this.mother='',this.village='',this.occupation='',this.spouse='',this.spouseCity='',this.spouseCaste='',this.spouseGotra='',this.generation='',this.dob='',this.dod='',this.marriageDate='',this.visitedPlaces='',this.visitYears='',this.jobType='',this.govtLevel='',this.jobCompany='',this.jobTitle='',this.jobCountry='',this.jobDetails='',this.photoPath='',this.notes='',this.travelPlace='',this.travelYear='',this.travelDate='',this.travelPurpose=''});
+ Map<String,dynamic> toJson()=>{'memberId':memberId,'fatherId':fatherId,'motherId':motherId,'spouseId':spouseId,'name':name,'gender':gender,'father':father,'mother':mother,'village':village,'occupation':occupation,'spouse':spouse,'spouseCity':spouseCity,'spouseCaste':spouseCaste,'spouseGotra':spouseGotra,'generation':generation,'dob':dob,'dod':dod,'marriageDate':marriageDate,'visitedPlaces':visitedPlaces,'visitYears':visitYears,'jobType':jobType,'govtLevel':govtLevel,'jobCompany':jobCompany,'jobTitle':jobTitle,'jobCountry':jobCountry,'jobDetails':jobDetails,'photoPath':photoPath,'notes':notes,'travelPlace':travelPlace,'travelYear':travelYear,'travelDate':travelDate,'travelPurpose':travelPurpose};
+ factory Member.fromJson(Map<String,dynamic> j)=>Member(memberId:j['memberId']??'',fatherId:j['fatherId']??'',motherId:j['motherId']??'',spouseId:j['spouseId']??'',name:j['name']??'',gender:j['gender']??'',father:j['father']??'',mother:j['mother']??'',village:j['village']??'',occupation:j['occupation']??'',spouse:j['spouse']??'',spouseCity:j['spouseCity']??'',spouseCaste:j['spouseCaste']??'',spouseGotra:j['spouseGotra']??'',generation:j['generation']??'',dob:j['dob']??'',dod:j['dod']??'',marriageDate:j['marriageDate']??'',visitedPlaces:j['visitedPlaces']??'',visitYears:j['visitYears']??'',jobType:j['jobType']??'',govtLevel:j['govtLevel']??'',jobCompany:j['jobCompany']??'',jobTitle:j['jobTitle']??'',jobCountry:j['jobCountry']??'',jobDetails:j['jobDetails']??'',photoPath:j['photoPath']??'',notes:j['notes']??'',travelPlace:j['travelPlace']??'',travelYear:j['travelYear']??'',travelDate:j['travelDate']??'',travelPurpose:j['travelPurpose']??'');
 }
 class FamilyDocument { final String name,path,type; final int size; FamilyDocument({required this.name,required this.path,required this.type,required this.size}); Map<String,dynamic> toJson()=>{'name':name,'path':path,'type':type,'size':size}; factory FamilyDocument.fromJson(Map<String,dynamic> j)=>FamilyDocument(name:j['name']??'',path:j['path']??'',type:j['type']??'',size:j['size']??0); }
 class FamilyHome extends StatefulWidget {const FamilyHome({super.key});@override State<FamilyHome> createState()=>_FamilyHomeState();}
 class _FamilyHomeState extends State<FamilyHome>{
  final List<Member> members=[]; final List<FamilyDocument> documents=[]; String status='परिवार की जानकारी जोड़ें';
  @override void initState(){super.initState();load();}
- Future<void> load()async{final p=await SharedPreferences.getInstance();final s=p.getString('members');if(s!=null){try{final a=(jsonDecode(s) as List).map((e)=>Member.fromJson(Map<String,dynamic>.from(e))).toList();if(mounted)setState(()=>members.addAll(a));}catch(_){}} final ds=p.getString('family_documents'); if(ds!=null){try{final a=(jsonDecode(ds) as List).map((e)=>FamilyDocument.fromJson(Map<String,dynamic>.from(e))).toList();if(mounted)setState(()=>documents.addAll(a));}catch(_){}}}
+ Future<void> load()async{final p=await SharedPreferences.getInstance();final s=p.getString('members');if(s!=null){try{final a=(jsonDecode(s) as List).map((e)=>Member.fromJson(Map<String,dynamic>.from(e))).toList();if(mounted){members.addAll(a);_ensureMemberIdsAndLinks();await save();}}catch(_){}} final ds=p.getString('family_documents'); if(ds!=null){try{final a=(jsonDecode(ds) as List).map((e)=>FamilyDocument.fromJson(Map<String,dynamic>.from(e))).toList();if(mounted)setState(()=>documents.addAll(a));}catch(_){}}}
  Future<void> save()async{final p=await SharedPreferences.getInstance();await p.setString('members',jsonEncode(members.map((m)=>m.toJson()).toList()));await p.setString('family_documents',jsonEncode(documents.map((d)=>d.toJson()).toList()));}
+ void _ensureMemberIdsAndLinks() {
+   final now = DateTime.now().microsecondsSinceEpoch;
+   final used = <String>{};
+   for (var i=0;i<members.length;i++) {
+     final m=members[i];
+     var id=m.memberId.trim();
+     if(id.isEmpty || used.contains(id)) id='SFT-${now}-${i+1}';
+     used.add(id);
+     if(id!=m.memberId) members[i]=Member.fromJson({...m.toJson(),'memberId':id});
+   }
+   String norm(String v)=>v.trim().toLowerCase().replaceAll(RegExp(r'\\s+'),' ');
+   int? gen(Member m)=>int.tryParse(m.generation.trim());
+   Member? uniqueParent(String name, Member child) {
+     if(name.trim().isEmpty)return null;
+     final matches=members.where((x)=>norm(x.name)==norm(name)).toList();
+     if(matches.length==1)return matches.first;
+     final cg=gen(child);
+     if(cg!=null){final adjacent=matches.where((x)=>gen(x)==cg-1).toList();if(adjacent.length==1)return adjacent.first;}
+     return null;
+   }
+   Member? uniqueSpouse(String name) {
+     if(name.trim().isEmpty)return null;
+     final matches=members.where((x)=>norm(x.name)==norm(name)).toList();
+     return matches.length==1?matches.first:null;
+   }
+   for(var i=0;i<members.length;i++){
+     final m=members[i];
+     final father=uniqueParent(m.father,m);
+     final mother=uniqueParent(m.mother,m);
+     final spouse=uniqueSpouse(m.spouse);
+     members[i]=Member.fromJson({...m.toJson(),
+       'fatherId':father?.memberId ?? m.fatherId,
+       'motherId':mother?.memberId ?? m.motherId,
+       'spouseId':spouse?.memberId ?? m.spouseId,
+     });
+   }
+ }
  Future<void> uploadDocument() async { final picked=await FilePicker.platform.pickFiles(type:FileType.custom,allowedExtensions:['pdf','jpg','jpeg','png'],withData:true); if(picked==null)return; final f=picked.files.single; if(f.bytes==null)return; final dir=await getApplicationDocumentsDirectory(); final folder=Directory('${dir.path}/family_documents'); await folder.create(recursive:true); final safe='${DateTime.now().millisecondsSinceEpoch}_${f.name.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'),'_')}'; final file=File('${folder.path}/$safe'); await file.writeAsBytes(f.bytes!,flush:true); setState(()=>documents.add(FamilyDocument(name:f.name,path:file.path,type:(f.extension??'').toLowerCase(),size:f.size))); await save(); setState(()=>status='Document अपलोड हुआ: ${f.name}'); }
  Future<void> downloadDocument(FamilyDocument d) async { final file=File(d.path); if(!await file.exists()){setState(()=>status='मूल फाइल नहीं मिली');return;} final bytes=await file.readAsBytes(); await FilePicker.platform.saveFile(dialogTitle:'फाइल सेव करें',fileName:d.name,bytes:bytes); }
  Future<void> exportBackup() async { final payload=jsonEncode({'members':members.map((m)=>m.toJson()).toList(),'documents':documents.map((d)=>d.toJson()).toList()}); await FilePicker.platform.saveFile(dialogTitle:'Family Backup सेव करें',fileName:'Sangroya_Family_Backup.json',bytes:Uint8List.fromList(utf8.encode(payload))); }
- Future<void> edit([int? i])async{final m=await showDialog<Member>(context:context,builder:(_)=>MemberForm(member:i==null?const Member():members[i]));if(m!=null){setState((){if(i==null){members.add(m);}else{members[i]=m;}status='जानकारी सुरक्षित हुई';});await save();}}
+ Future<void> edit([int? i])async{final m=await showDialog<Member>(context:context,builder:(_)=>MemberForm(member:i==null?const Member():members[i]));if(m!=null){setState((){if(i==null){members.add(m);}else{members[i]=m;} _ensureMemberIdsAndLinks();status='जानकारी सुरक्षित हुई';});await save();}}
  Future<void> importExcel() async {
   try {
     setState(() => status = 'Excel फाइल पढ़ी जा रही है...');
@@ -197,6 +235,7 @@ class _FamilyHomeState extends State<FamilyHome>{
     if (!mounted) return;
     setState(() {
       members.addAll(added);
+      _ensureMemberIdsAndLinks();
       status = '${added.length} सदस्य Import हुए। ${skipped > 0 ? '$skipped खाली पंक्तियाँ छोड़ी गईं।' : ''}';
     });
     await save();
