@@ -196,5 +196,5 @@ class _AccessPageState extends State<AccessPage>{
  const SizedBox(height:14),FilledButton(onPressed:()=>ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('वास्तविक लॉगिन के लिए Firebase Authentication और Super Admin account setup अभी आवश्यक है।'))),child:const Text('Login')),
  ],
  const SizedBox(height:12),const Text('नोट: WhatsApp/Email बटन आपके फोन में संदेश तैयार करते हैं। वास्तविक अकाउंट, OTP, पासवर्ड सत्यापन, Admin approval और सभी फोन में डेटा sync के लिए Firebase backend जोड़ना बाकी है।',style:TextStyle(color:Colors.deepOrange),textAlign:TextAlign.center)
- ]))))));
+ ])))))));
 }
