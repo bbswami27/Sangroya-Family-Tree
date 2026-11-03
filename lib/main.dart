@@ -66,7 +66,7 @@ class _FamilyHomeState extends State<FamilyHome>{
    for (var i=0;i<members.length;i++) {
      final m=members[i];
      var id=m.memberId.trim();
-     if(id.isEmpty || used.contains(id)) id='SFT-${now}-${i+1}';
+     if(id.isEmpty || used.contains(id)) id='SFT-$now-${i+1}';
      used.add(id);
      if(id!=m.memberId) members[i]=Member.fromJson({...m.toJson(),'memberId':id});
    }
