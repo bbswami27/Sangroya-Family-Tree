@@ -116,7 +116,7 @@ class CommunityHistoryPage extends StatelessWidget {
 
 class AccessPage extends StatelessWidget {
   final bool registration;
-  const AccessPage({super.key, required bool registration}) : registration = registration;
+  const AccessPage({super.key, required this.registration});
 
   @override
   Widget build(BuildContext context) {
