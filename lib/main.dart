@@ -113,7 +113,8 @@ class CommunityHistoryPage extends StatelessWidget {
  const Text('नोट: यह सामान्य परिचय है, आपके परिवार/शाखा का प्रमाणित इतिहास नहीं। विशिष्ट वंश-परंपरा जोड़ने से पहले विश्वसनीय स्रोतों से पुष्टि करें।',style:TextStyle(color:Color(0xFF9A4D00))),
  ]);
 }
-\nclass AccessPage extends StatelessWidget {
+
+class AccessPage extends StatelessWidget {
   final bool registration;
   const AccessPage({super.key, required bool registration}) : registration = registration;
 
