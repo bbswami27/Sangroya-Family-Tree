@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "766673426185",
+    "project_id": "sangroya-family-tree",
+    "storage_bucket": "sangroya-family-tree.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:766673426185:android:0de1e3f393741d27eca5d8",
+        "android_client_info": {
+          "package_name": "com.sangroya.familytree.sangroya_family_tree"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzsAh7ugSD-TTnf8NKu7wFcSKRmZyy9DY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
